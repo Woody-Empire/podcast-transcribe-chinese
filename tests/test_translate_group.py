@@ -28,17 +28,22 @@ def main():
     groups = group_output["utterance_groups"]
     print(f"读取分组输出: {len(groups)} 组待翻译")
 
-    all_translated = []
+    all_translated: list[list[str]] = []
 
-    for i, group_text in enumerate(groups):
-        print(f"\n正在翻译第 {i + 1}/{len(groups)} 组...")
-        result = translate_group({"group_text": group_text})
+    for i, group_texts in enumerate(groups):
+        print(f"\n正在翻译第 {i + 1}/{len(groups)} 组 ({len(group_texts)} 条)...")
+        result = translate_group({"group_texts": group_texts})
         translated = result["translated_groups"][0]
         all_translated.append(translated)
-        # 打印前 200 字符预览
-        print(f"  翻译预览: {translated[:200]}...")
+        print(f"  返回 {len(translated)} 条翻译")
+        if translated:
+            print(f"  首条预览: {translated[0][:100]}...")
 
-    output = {"translated_groups": all_translated}
+    # 同时保存 speakers 供 prepare_dialogue 使用
+    output = {
+        "translated_groups": all_translated,
+        "utterance_group_speakers": group_output["utterance_group_speakers"],
+    }
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)

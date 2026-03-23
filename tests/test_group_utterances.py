@@ -26,16 +26,15 @@ def main():
     result = group_utterances({"utterances": asr_output["utterances"]})
 
     groups = result["utterance_groups"]
+    speakers = result["utterance_group_speakers"]
     print(f"分组完成: {len(groups)} 组")
 
-    for i, group in enumerate(groups):
-        lines = group.strip().split("\n")
-        print(f"\n--- 第 {i + 1} 组 ({len(lines)} 条) ---")
-        print(lines[0][:100] + "..." if len(lines[0]) > 100 else lines[0])
-        if len(lines) > 1:
-            print(f"  ... 共 {len(lines)} 条发言")
+    for i, (group, spks) in enumerate(zip(groups, speakers)):
+        unique_spks = sorted(set(spks))
+        print(f"\n--- 第 {i + 1} 组 ({len(group)} 条, speakers: {unique_spks}) ---")
+        preview = group[0][:100] + "..." if len(group[0]) > 100 else group[0]
+        print(f"  [{spks[0]}] {preview}")
 
-    # 保存结果
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
