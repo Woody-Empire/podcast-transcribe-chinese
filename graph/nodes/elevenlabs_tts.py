@@ -20,7 +20,7 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
     output_format = os.environ.get("ELEVENLABS_OUTPUT_FORMAT", "mp3_44100_128")
     max_concurrency = int(os.environ.get("ELEVENLABS_TTS_MAX_CONCURRENCY", "5"))
 
-    output_dir = os.environ.get("TTS_OUTPUT_DIR", "output")
+    output_dir = state.get("output_dir") or os.environ.get("TTS_OUTPUT_DIR", "output")
     os.makedirs(output_dir, exist_ok=True)
 
     semaphore = asyncio.Semaphore(max_concurrency)

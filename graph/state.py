@@ -10,4 +10,5 @@ class GraphState(TypedDict, total=False):
     utterance_group_speakers: list[list[str]]
     translated_groups: Annotated[list[list[str]], operator.add]
     dialogue_inputs: list[list[dict]]
+    output_dir: str
     tts_audio_file: str
