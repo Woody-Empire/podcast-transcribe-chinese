@@ -16,7 +16,7 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "outputs")
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, "assemblyai_asr_output.json")
 
 # 默认测试音频路径，可通过环境变量覆盖
-DEFAULT_AUDIO = os.path.join(os.path.dirname(__file__), "..", "test.mp3")
+DEFAULT_AUDIO = os.path.join(os.path.dirname(__file__), "..", "test2.mp3")
 AUDIO_FILE = os.environ.get("TEST_AUDIO_FILE", os.path.abspath(DEFAULT_AUDIO))
 
 
