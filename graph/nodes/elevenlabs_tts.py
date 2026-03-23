@@ -1,4 +1,6 @@
 import os
+import subprocess
+import tempfile
 
 from dotenv import load_dotenv
 from elevenlabs import DialogueInput, ElevenLabs
@@ -43,12 +45,21 @@ def elevenlabs_tts(state: GraphState) -> GraphState:
         print(f"  已保存: {segment_path} ({file_size} bytes)")
         audio_segments.append(segment_path)
 
-    # 合并所有音频片段
+    # 使用 ffmpeg concat 合并所有音频片段（生成正确的帧索引，修复拖动进度条定位不准的问题）
     merged_path = os.path.join(output_dir, "podcast_chinese.mp3")
-    with open(merged_path, "wb") as outfile:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         for seg_path in audio_segments:
-            with open(seg_path, "rb") as infile:
-                outfile.write(infile.read())
+            f.write(f"file '{os.path.abspath(seg_path)}'\n")
+        concat_list = f.name
+
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list, "-c", "copy", merged_path],
+            check=True,
+            capture_output=True,
+        )
+    finally:
+        os.unlink(concat_list)
 
     print(f"语音合成完成: {merged_path}")
     return {"tts_audio_file": merged_path}
