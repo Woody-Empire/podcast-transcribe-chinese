@@ -1,49 +1,57 @@
+import asyncio
 import os
 import subprocess
 import tempfile
 
 from dotenv import load_dotenv
-from elevenlabs import DialogueInput, ElevenLabs
+from elevenlabs import AsyncElevenLabs, DialogueInput
 
 from graph.state import GraphState
 
 load_dotenv()
 
 
-def elevenlabs_tts(state: GraphState) -> GraphState:
-    """使用 ElevenLabs text-to-dialogue 接口将多角色对话分批合成为语音，合并输出。"""
+async def elevenlabs_tts(state: GraphState) -> GraphState:
+    """使用 ElevenLabs text-to-dialogue 接口将多角色对话分批并发合成为语音，合并输出。"""
     dialogue_inputs = state["dialogue_inputs"]
 
-    client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
+    client = AsyncElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_v3")
     output_format = os.environ.get("ELEVENLABS_OUTPUT_FORMAT", "mp3_44100_128")
+    max_concurrency = int(os.environ.get("ELEVENLABS_TTS_MAX_CONCURRENCY", "5"))
 
     output_dir = os.environ.get("TTS_OUTPUT_DIR", "output")
     os.makedirs(output_dir, exist_ok=True)
 
-    audio_segments = []
-    for i, batch in enumerate(dialogue_inputs):
-        inputs = [
-            DialogueInput(text=item["text"], voice_id=item["voice_id"])
-            for item in batch
-        ]
-        total_chars = sum(len(item["text"]) for item in batch)
+    semaphore = asyncio.Semaphore(max_concurrency)
 
-        print(f"正在合成第 {i + 1}/{len(dialogue_inputs)} 批语音 ({len(inputs)} 条, {total_chars} 字符)...")
-        audio = client.text_to_dialogue.convert(
-            inputs=inputs,
-            model_id=model_id,
-            output_format=output_format,
-        )
+    async def process_batch(i: int, batch: list[dict]) -> str:
+        async with semaphore:
+            inputs = [
+                DialogueInput(text=item["text"], voice_id=item["voice_id"])
+                for item in batch
+            ]
+            total_chars = sum(len(item["text"]) for item in batch)
 
-        segment_path = os.path.join(output_dir, f"segment_{i:03d}.mp3")
-        with open(segment_path, "wb") as f:
-            for chunk in audio:
-                f.write(chunk)
+            print(f"正在合成第 {i + 1}/{len(dialogue_inputs)} 批语音 ({len(inputs)} 条, {total_chars} 字符)...")
+            audio = client.text_to_dialogue.convert(
+                inputs=inputs,
+                model_id=model_id,
+                output_format=output_format,
+            )
 
-        file_size = os.path.getsize(segment_path)
-        print(f"  已保存: {segment_path} ({file_size} bytes)")
-        audio_segments.append(segment_path)
+            segment_path = os.path.join(output_dir, f"segment_{i:03d}.mp3")
+            with open(segment_path, "wb") as f:
+                async for chunk in audio:
+                    f.write(chunk)
+
+            file_size = os.path.getsize(segment_path)
+            print(f"  已保存: {segment_path} ({file_size} bytes)")
+            return segment_path
+
+    audio_segments = await asyncio.gather(
+        *(process_batch(i, batch) for i, batch in enumerate(dialogue_inputs))
+    )
 
     # 使用 ffmpeg concat 合并所有音频片段（生成正确的帧索引，修复拖动进度条定位不准的问题）
     merged_path = os.path.join(output_dir, "podcast_chinese.mp3")
