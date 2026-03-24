@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>播刻 — Podcast to Chinese</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300&family=Noto+Serif+SC:wght@300;500;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ink: #1a1714;
+  --paper: #f5f0e8;
+  --paper-deep: #ebe4d8;
+  --vermillion: #c73e1d;
+  --vermillion-soft: rgba(199, 62, 29, 0.12);
+  --stone: #8a8279;
+  --stone-light: #b5aea5;
+  --shadow: rgba(26, 23, 20, 0.06);
+  --font-display: 'Cormorant Garamond', serif;
+  --font-cn: 'Noto Serif SC', serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html { font-size: 16px; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-cn);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* subtle paper grain texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.header {
+  text-align: center;
+  margin-top: 5rem;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: fadeDown 0.8s ease 0.2s forwards;
+}
+
+.header h1 {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 2.8rem;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.header .subtitle {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 0.95rem;
+  color: var(--stone);
+  margin-top: 0.75rem;
+  letter-spacing: 0.15em;
+}
+
+/* Main container */
+.container {
+  width: 100%;
+  max-width: 520px;
+  padding: 0 1.5rem;
+  margin-top: 3.5rem;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.4s forwards;
+}
+
+/* Drop zone */
+.dropzone {
+  position: relative;
+  border: 1.5px dashed var(--stone-light);
+  border-radius: 12px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+}
+
+.dropzone:hover {
+  border-color: var(--vermillion);
+  background: var(--vermillion-soft);
+}
+
+.dropzone.drag-over {
+  border-color: var(--vermillion);
+  background: var(--vermillion-soft);
+  transform: scale(1.01);
+}
+
+.dropzone-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1.2rem;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.dropzone:hover .dropzone-icon { opacity: 0.6; }
+
+.dropzone-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: var(--ink);
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dropzone-text {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 1rem;
+  color: var(--stone);
+  line-height: 1.7;
+}
+
+.dropzone-text strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.dropzone-hint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone-light);
+  margin-top: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+input[type="file"] { display: none; }
+
+/* File selected state */
+.file-info {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--paper-deep);
+  border-radius: 10px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-info.visible {
+  display: flex;
+  animation: fadeUp 0.4s ease forwards;
+}
+
+.file-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: var(--ink);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--paper);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--stone);
+  margin-top: 0.15rem;
+}
+
+.file-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.file-remove:hover { background: var(--shadow); }
+
+.file-remove svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--stone);
+  fill: none;
+  stroke-width: 1.8;
+}
+
+/* Submit button */
+.submit-btn {
+  display: none;
+  width: 100%;
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-btn.visible {
+  display: block;
+  animation: fadeUp 0.4s ease forwards;
+}
+
+.submit-btn:hover {
+  background: #2d2924;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+.submit-btn:active { transform: translateY(0); }
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Progress section */
+.progress-section {
+  display: none;
+  margin-top: 1.5rem;
+}
+
+.progress-section.visible {
+  display: block;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.progress-status {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.progress-pct {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--stone);
+}
+
+.progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--paper-deep);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--vermillion);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Processing animation */
+.processing-section {
+  display: none;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.processing-section.visible {
+  display: block;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.processing-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 40px;
+  margin-bottom: 1.2rem;
+}
+
+.processing-wave span {
+  display: block;
+  width: 2px;
+  height: 8px;
+  background: var(--vermillion);
+  border-radius: 1px;
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+.processing-wave span:nth-child(1) { animation-delay: 0s; }
+.processing-wave span:nth-child(2) { animation-delay: 0.1s; }
+.processing-wave span:nth-child(3) { animation-delay: 0.2s; }
+.processing-wave span:nth-child(4) { animation-delay: 0.3s; }
+.processing-wave span:nth-child(5) { animation-delay: 0.4s; }
+.processing-wave span:nth-child(6) { animation-delay: 0.5s; }
+.processing-wave span:nth-child(7) { animation-delay: 0.6s; }
+.processing-wave span:nth-child(8) { animation-delay: 0.7s; }
+.processing-wave span:nth-child(9) { animation-delay: 0.8s; }
+
+.processing-text {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: var(--stone);
+}
+
+.processing-steps {
+  margin-top: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone-light);
+  transition: color 0.3s ease;
+}
+
+.step.active { color: var(--ink); }
+.step.done { color: var(--stone); }
+
+.step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--stone-light);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-dot {
+  background: var(--vermillion);
+  box-shadow: 0 0 0 3px var(--vermillion-soft);
+  animation: pulse 1.5s ease infinite;
+}
+
+.step.done .step-dot { background: var(--stone); }
+
+/* Result section */
+.result-section {
+  display: none;
+  margin-top: 1.5rem;
+}
+
+.result-section.visible {
+  display: block;
+  animation: fadeUp 0.6s ease forwards;
+}
+
+.result-card {
+  background: var(--ink);
+  border-radius: 12px;
+  padding: 1.8rem;
+  color: var(--paper);
+}
+
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--vermillion);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.result-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--vermillion);
+}
+
+.result-title {
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+audio {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 1.2rem;
+  border-radius: 8px;
+  outline: none;
+  filter: invert(1) hue-rotate(180deg) brightness(0.85);
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.btn-download, .btn-reset {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+}
+
+.btn-download {
+  background: var(--vermillion);
+  color: var(--paper);
+}
+
+.btn-download:hover { background: #d4492a; }
+
+.btn-reset {
+  background: rgba(245, 240, 232, 0.1);
+  color: var(--paper);
+  border: 1px solid rgba(245, 240, 232, 0.15);
+}
+
+.btn-reset:hover { background: rgba(245, 240, 232, 0.18); }
+
+.btn-download svg, .btn-reset svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+/* Error */
+.error-msg {
+  display: none;
+  margin-top: 1.2rem;
+  padding: 1rem 1.2rem;
+  background: var(--vermillion-soft);
+  border-radius: 10px;
+  border-left: 3px solid var(--vermillion);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--vermillion);
+  line-height: 1.6;
+}
+
+.error-msg.visible {
+  display: block;
+  animation: shake 0.4s ease;
+}
+
+/* Footer */
+.footer {
+  margin-top: auto;
+  padding: 3rem 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--stone-light);
+  letter-spacing: 0.08em;
+  position: relative;
+  z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wave {
+  0%, 100% { height: 8px; opacity: 0.4; }
+  50% { height: 28px; opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--vermillion-soft); }
+  50% { box-shadow: 0 0 0 6px rgba(199, 62, 29, 0.06); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Responsive */
+@media (max-width: 540px) {
+  .header { margin-top: 3rem; }
+  .header h1 { font-size: 2.2rem; }
+  .container { margin-top: 2.5rem; }
+  .dropzone { padding: 2.5rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>播刻</h1>
+  <p class="subtitle">英文播客 — 中文声音</p>
+</header>
+
+<main class="container">
+  <!-- Upload -->
+  <div class="dropzone" id="dropzone">
+    <div class="dropzone-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
+    </div>
+    <p class="dropzone-text">
+      <strong>拖放音频文件</strong>至此处<br>或点击选择文件
+    </p>
+    <p class="dropzone-hint">MP3 / WAV / M4A</p>
+  </div>
+  <input type="file" id="fileInput" accept="audio/*">
+
+  <!-- File info -->
+  <div class="file-info" id="fileInfo">
+    <div class="file-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    </div>
+    <div class="file-details">
+      <div class="file-name" id="fileName"></div>
+      <div class="file-size" id="fileSize"></div>
+    </div>
+    <button class="file-remove" id="fileRemove" title="移除文件">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn" id="submitBtn">开始转录</button>
+
+  <!-- Upload progress -->
+  <div class="progress-section" id="progressSection">
+    <div class="progress-label">
+      <span class="progress-status" id="progressStatus">正在上传</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <!-- Processing -->
+  <div class="processing-section" id="processingSection">
+    <div class="processing-wave">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <p class="processing-text">正在处理中，请稍候</p>
+    <div class="processing-steps">
+      <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
+      <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
+      <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-section" id="resultSection">
+    <div class="result-card">
+      <div class="result-badge">转录完成</div>
+      <p class="result-title">您的中文播客音频已准备就绪</p>
+      <audio controls id="audioPlayer"></audio>
+      <div class="result-actions">
+        <a class="btn-download" id="downloadBtn" download="podcast_chinese.mp3">
+          <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          下载音频
+        </a>
+        <button class="btn-reset" id="resetBtn">
+          <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
+          重新开始
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+</main>
+
+<footer class="footer">播刻 Podcast Transcribe</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const dropzone = $('dropzone');
+const fileInput = $('fileInput');
+const fileInfo = $('fileInfo');
+const fileName = $('fileName');
+const fileSize = $('fileSize');
+const fileRemove = $('fileRemove');
+const submitBtn = $('submitBtn');
+const progressSection = $('progressSection');
+const progressStatus = $('progressStatus');
+const progressPct = $('progressPct');
+const progressBar = $('progressBar');
+const processingSection = $('processingSection');
+const resultSection = $('resultSection');
+const audioPlayer = $('audioPlayer');
+const downloadBtn = $('downloadBtn');
+const resetBtn = $('resetBtn');
+const errorMsg = $('errorMsg');
+
+let selectedFile = null;
+let audioBlobUrl = null;
+
+// Format file size
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// Show / hide helpers
+function show(el) { el.classList.add('visible'); }
+function hide(el) { el.classList.remove('visible'); el.style.display = ''; }
+
+// File selection
+function selectFile(file) {
+  if (!file) return;
+  selectedFile = file;
+  fileName.textContent = file.name;
+  fileSize.textContent = formatSize(file.size);
+  show(fileInfo);
+  show(submitBtn);
+  hideError();
+}
+
+function clearFile() {
+  selectedFile = null;
+  fileInput.value = '';
+  hide(fileInfo);
+  hide(submitBtn);
+}
+
+// Drag & drop
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => selectFile(e.target.files[0]));
+fileRemove.addEventListener('click', e => { e.stopPropagation(); clearFile(); });
+
+dropzone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.classList.add('drag-over');
+});
+
+dropzone.addEventListener('dragleave', () => {
+  dropzone.classList.remove('drag-over');
+});
+
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('audio/')) selectFile(file);
+});
+
+// Error display
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('visible');
+  errorMsg.style.display = 'block';
+}
+function hideError() {
+  errorMsg.classList.remove('visible');
+  errorMsg.style.display = '';
+}
+
+// Simulated step progression during processing
+let stepTimer = null;
+function startStepAnimation() {
+  const steps = [$('step1'), $('step2'), $('step3')];
+  let current = 0;
+  steps[0].classList.add('active');
+
+  stepTimer = setInterval(() => {
+    if (current < steps.length) {
+      steps[current].classList.remove('active');
+      steps[current].classList.add('done');
+    }
+    current++;
+    if (current < steps.length) {
+      steps[current].classList.add('active');
+    } else {
+      clearInterval(stepTimer);
+    }
+  }, 8000);
+}
+
+function stopStepAnimation() {
+  clearInterval(stepTimer);
+  [$('step1'), $('step2'), $('step3')].forEach(s => {
+    s.classList.remove('active');
+    s.classList.add('done');
+  });
+}
+
+function resetSteps() {
+  clearInterval(stepTimer);
+  [$('step1'), $('step2'), $('step3')].forEach(s => {
+    s.classList.remove('active', 'done');
+  });
+}
+
+// Submit
+submitBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  hideError();
+
+  // Hide upload UI
+  dropzone.style.display = 'none';
+  hide(fileInfo);
+  hide(submitBtn);
+
+  // Show upload progress
+  show(progressSection);
+  progressSection.style.display = 'block';
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    // Upload with XHR for progress tracking
+    const audioBlob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.responseType = 'blob';
+
+      xhr.upload.addEventListener('progress', e => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+
+          if (pct >= 100) {
+            progressStatus.textContent = '上传完成';
+            // Transition to processing
+            setTimeout(() => {
+              hide(progressSection);
+              progressSection.style.display = '';
+              show(processingSection);
+              processingSection.style.display = 'block';
+              startStepAnimation();
+            }, 500);
+          }
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject(new Error(`服务器返回错误 (${xhr.status})`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('网络连接失败')));
+      xhr.addEventListener('abort', () => reject(new Error('请求被取消')));
+
+      xhr.open('POST', '/transcribe');
+      xhr.send(formData);
+    });
+
+    // Done — show result
+    stopStepAnimation();
+    hide(processingSection);
+    processingSection.style.display = '';
+
+    if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+    audioBlobUrl = URL.createObjectURL(audioBlob);
+    audioPlayer.src = audioBlobUrl;
+    downloadBtn.href = audioBlobUrl;
+
+    show(resultSection);
+    resultSection.style.display = 'block';
+
+  } catch (err) {
+    // Reset and show error
+    hide(progressSection);
+    progressSection.style.display = '';
+    hide(processingSection);
+    processingSection.style.display = '';
+    stopStepAnimation();
+    resetSteps();
+    resetUI();
+    showError(err.message || '处理失败，请重试');
+  }
+});
+
+function resetUI() {
+  // Reset progress
+  progressBar.style.width = '0%';
+  progressPct.textContent = '0%';
+  progressStatus.textContent = '正在上传';
+
+  // Show upload UI
+  dropzone.style.display = '';
+  clearFile();
+  resetSteps();
+}
+
+// Reset button
+resetBtn.addEventListener('click', () => {
+  hide(resultSection);
+  resultSection.style.display = '';
+  if (audioBlobUrl) {
+    URL.revokeObjectURL(audioBlobUrl);
+    audioBlobUrl = null;
+  }
+  audioPlayer.src = '';
+  resetUI();
+});
+</script>
+
+</body>
+</html>
