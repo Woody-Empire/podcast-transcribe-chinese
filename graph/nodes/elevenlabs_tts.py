@@ -67,7 +67,7 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
 
     try:
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list, "-c", "copy", merged_path],
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list, "-c:a", "libmp3lame", "-b:a", "128k", merged_path],
             check=True,
             capture_output=True,
         )
