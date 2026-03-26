@@ -6,7 +6,6 @@ from graph.state import GraphState
 
 # Speaker 与 voice_id 的映射表
 # text-to-dialogue 接口最多支持 10 个不同的 voice_id
-# TODO: 替换 value 为实际的 ElevenLabs voice_id
 SPEAKER_VOICE_MAP: dict[str, str] = {
     "A": "D9bZgM9Er0PhIxuW9Jqa",
     "B": "MQkiCZS3mnl44caDtxkJ",
@@ -26,11 +25,12 @@ _VOICE_SLOTS = list(SPEAKER_VOICE_MAP.values())
 def prepare_dialogue(state: GraphState) -> GraphState:
     """将翻译结果与 ASR speaker 信息组装为 text-to-dialogue 接口所需的 inputs 格式。
 
-    translated_groups 和 utterance_group_speakers 按索引一一对应，
-    直接 zip 组装，不依赖任何 LLM 输出格式解析。
+    每条发言独立为一个 batch（一次 API 调用），便于后续精确获取每条字幕的音频时长。
+    超长文本在 batch 内按句子边界拆分为多个 item，但仍属同一次调用。
     """
     translated_groups = state["translated_groups"]
     group_speakers = state["utterance_group_speakers"]
+    utterance_groups = state["utterance_groups"]
 
     if len(translated_groups) != len(group_speakers):
         raise ValueError(
@@ -59,36 +59,32 @@ def prepare_dialogue(state: GraphState) -> GraphState:
         next_slot_idx += 1
         return runtime_map[speaker]
 
-    # 先展平所有条目，超长文本按句子边界拆分
     max_chars = 3000
-    all_items: list[dict] = []
-    for translations, speakers in zip(translated_groups, group_speakers):
-        for text, speaker in zip(translations, speakers):
-            voice_id = get_voice_id(speaker)
-            if len(text) <= max_chars:
-                all_items.append({"text": text, "voice_id": voice_id})
-            else:
-                for chunk in _split_text(text, max_chars):
-                    all_items.append({"text": chunk, "voice_id": voice_id})
-
-    # 按字符数上限分批，保持条目完整性
     batches: list[list[dict]] = []
-    current_batch: list[dict] = []
-    current_chars = 0
+    subtitle_items: list[dict] = []
 
-    for item in all_items:
-        item_chars = len(item["text"])
-        if current_batch and current_chars + item_chars > max_chars:
-            batches.append(current_batch)
-            current_batch = []
-            current_chars = 0
-        current_batch.append(item)
-        current_chars += item_chars
+    for translations, speakers, originals in zip(
+        translated_groups, group_speakers, utterance_groups
+    ):
+        for chinese, speaker, english in zip(translations, speakers, originals):
+            voice_id = get_voice_id(speaker)
 
-    if current_batch:
-        batches.append(current_batch)
+            # 每条发言 = 一个 batch；超长文本在 batch 内拆分
+            if len(chinese) <= max_chars:
+                batches.append([{"text": chinese, "voice_id": voice_id}])
+            else:
+                chunks = _split_text(chinese, max_chars)
+                batches.append(
+                    [{"text": chunk, "voice_id": voice_id} for chunk in chunks]
+                )
 
-    return {"dialogue_inputs": batches}
+            subtitle_items.append({
+                "chinese": chinese,
+                "english": english,
+                "speaker": speaker,
+            })
+
+    return {"dialogue_inputs": batches, "subtitle_items": subtitle_items}
 
 
 # 中英文句子结束符，保留分隔符在前一段

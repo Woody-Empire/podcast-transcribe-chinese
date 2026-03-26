@@ -41,6 +41,7 @@ async def upload(file: UploadFile):
         "audio_path": audio_path,
         "output_dir": output_dir,
         "result": None,
+        "subtitle_file": None,
     }
     return {"task_id": task_id}
 
@@ -93,6 +94,7 @@ async def progress(task_id: str):
                     elif node_name == "elevenlabs_tts":
                         await queue.put(("step_done", {"step": "tts"}))
                         task["result"] = update.get("tts_audio_file")
+                        task["subtitle_file"] = update.get("subtitle_file")
 
             await queue.put(("done", {"task_id": task_id}))
         except Exception as e:
@@ -128,4 +130,16 @@ async def download(task_id: str):
         task["result"],
         media_type="audio/mpeg",
         filename="podcast_chinese.mp3",
+    )
+
+
+@app.get("/subtitles/{task_id}")
+async def subtitles(task_id: str):
+    """获取字幕数据。"""
+    task = _tasks.get(task_id)
+    if not task or not task.get("subtitle_file"):
+        return {"error": "字幕数据未就绪"}
+    return FileResponse(
+        task["subtitle_file"],
+        media_type="application/json",
     )
