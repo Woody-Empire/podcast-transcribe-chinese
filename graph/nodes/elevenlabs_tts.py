@@ -6,6 +6,7 @@ import tempfile
 from dotenv import load_dotenv
 from elevenlabs import AsyncElevenLabs, DialogueInput
 
+from graph.progress import send_log
 from graph.state import GraphState
 
 load_dotenv()
@@ -23,6 +24,10 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
     output_dir = state.get("output_dir") or os.environ.get("TTS_OUTPUT_DIR", "output")
     os.makedirs(output_dir, exist_ok=True)
 
+    async def log(msg: str):
+        print(msg)
+        await send_log(output_dir, msg)
+
     semaphore = asyncio.Semaphore(max_concurrency)
 
     async def process_batch(i: int, batch: list[dict]) -> str:
@@ -33,7 +38,7 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
             ]
             total_chars = sum(len(item["text"]) for item in batch)
 
-            print(f"正在合成第 {i + 1}/{len(dialogue_inputs)} 批语音 ({len(inputs)} 条, {total_chars} 字符)...")
+            await log(f"正在合成第 {i + 1}/{len(dialogue_inputs)} 批语音 ({len(inputs)} 条, {total_chars} 字符)...")
             audio = client.text_to_dialogue.convert(
                 inputs=inputs,
                 model_id=model_id,
@@ -46,7 +51,7 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
                     f.write(chunk)
 
             file_size = os.path.getsize(segment_path)
-            print(f"  已保存: {segment_path} ({file_size} bytes)")
+            await log(f"  已保存: {segment_path} ({file_size} bytes)")
             return segment_path
 
     audio_segments = await asyncio.gather(
@@ -69,5 +74,5 @@ async def elevenlabs_tts(state: GraphState) -> GraphState:
     finally:
         os.unlink(concat_list)
 
-    print(f"语音合成完成: {merged_path}")
+    await log(f"语音合成完成: {merged_path}")
     return {"tts_audio_file": merged_path}

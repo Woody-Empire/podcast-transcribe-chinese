@@ -404,6 +404,25 @@ input[type="file"] { display: none; }
 
 .step.done .step-dot { background: var(--stone); }
 
+/* Processing logs */
+.processing-logs {
+  margin-top: 1.2rem;
+  max-height: 140px;
+  overflow-y: auto;
+  text-align: left;
+  padding: 0 0.2rem;
+}
+
+.log-entry {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--stone);
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--paper-deep);
+  opacity: 0;
+  animation: fadeUp 0.3s ease forwards;
+}
+
 /* Result section */
 .result-section {
   display: none;
@@ -630,12 +649,13 @@ audio {
       <span></span><span></span><span></span>
       <span></span><span></span><span></span>
     </div>
-    <p class="processing-text">正在处理中，请稍候</p>
+    <p class="processing-text" id="processingText">正在处理中，请稍候</p>
     <div class="processing-steps">
       <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
       <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
       <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
     </div>
+    <div class="processing-logs" id="processingLogs"></div>
   </div>
 
   <!-- Result -->
@@ -678,6 +698,8 @@ const progressStatus = $('progressStatus');
 const progressPct = $('progressPct');
 const progressBar = $('progressBar');
 const processingSection = $('processingSection');
+const processingText = $('processingText');
+const processingLogs = $('processingLogs');
 const resultSection = $('resultSection');
 const audioPlayer = $('audioPlayer');
 const downloadBtn = $('downloadBtn');
@@ -686,6 +708,8 @@ const errorMsg = $('errorMsg');
 
 let selectedFile = null;
 let audioBlobUrl = null;
+
+const stepMap = { asr: 'step1', translate: 'step2', tts: 'step3' };
 
 // Format file size
 function formatSize(bytes) {
@@ -748,40 +772,40 @@ function hideError() {
   errorMsg.style.display = '';
 }
 
-// Simulated step progression during processing
-let stepTimer = null;
-function startStepAnimation() {
-  const steps = [$('step1'), $('step2'), $('step3')];
-  let current = 0;
-  steps[0].classList.add('active');
-
-  stepTimer = setInterval(() => {
-    if (current < steps.length) {
-      steps[current].classList.remove('active');
-      steps[current].classList.add('done');
-    }
-    current++;
-    if (current < steps.length) {
-      steps[current].classList.add('active');
-    } else {
-      clearInterval(stepTimer);
-    }
-  }, 8000);
+// Step control (driven by SSE events)
+function activateStep(step) {
+  const el = $(stepMap[step]);
+  if (el) {
+    el.classList.remove('done');
+    el.classList.add('active');
+  }
 }
 
-function stopStepAnimation() {
-  clearInterval(stepTimer);
-  [$('step1'), $('step2'), $('step3')].forEach(s => {
-    s.classList.remove('active');
-    s.classList.add('done');
-  });
+function completeStep(step) {
+  const el = $(stepMap[step]);
+  if (el) {
+    el.classList.remove('active');
+    el.classList.add('done');
+  }
 }
 
 function resetSteps() {
-  clearInterval(stepTimer);
   [$('step1'), $('step2'), $('step3')].forEach(s => {
     s.classList.remove('active', 'done');
   });
+}
+
+// Log display
+function addLog(message) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.textContent = message;
+  processingLogs.appendChild(entry);
+  processingLogs.scrollTop = processingLogs.scrollHeight;
+}
+
+function clearLogs() {
+  processingLogs.innerHTML = '';
 }
 
 // Submit
@@ -802,48 +826,94 @@ submitBtn.addEventListener('click', async () => {
   formData.append('file', selectedFile);
 
   try {
-    // Upload with XHR for progress tracking
-    const audioBlob = await new Promise((resolve, reject) => {
+    // Step 1: Upload file via XHR with progress
+    const taskId = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.responseType = 'blob';
+      xhr.responseType = 'json';
 
       xhr.upload.addEventListener('progress', e => {
         if (e.lengthComputable) {
           const pct = Math.round((e.loaded / e.total) * 100);
           progressBar.style.width = pct + '%';
           progressPct.textContent = pct + '%';
-
-          if (pct >= 100) {
-            progressStatus.textContent = '上传完成';
-            // Transition to processing
-            setTimeout(() => {
-              hide(progressSection);
-              progressSection.style.display = '';
-              show(processingSection);
-              processingSection.style.display = 'block';
-              startStepAnimation();
-            }, 500);
-          }
+          if (pct >= 100) progressStatus.textContent = '上传完成';
         }
       });
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.response);
+          resolve(xhr.response.task_id);
         } else {
-          reject(new Error(`服务器返回错误 (${xhr.status})`));
+          reject(new Error(`上传失败 (${xhr.status})`));
         }
       });
 
       xhr.addEventListener('error', () => reject(new Error('网络连接失败')));
-      xhr.addEventListener('abort', () => reject(new Error('请求被取消')));
+      xhr.addEventListener('abort', () => reject(new Error('上传被取消')));
 
-      xhr.open('POST', '/transcribe');
+      xhr.open('POST', '/upload');
       xhr.send(formData);
     });
 
-    // Done — show result
-    stopStepAnimation();
+    // Step 2: Transition to processing view
+    await new Promise(r => setTimeout(r, 400));
+    hide(progressSection);
+    progressSection.style.display = '';
+    show(processingSection);
+    processingSection.style.display = 'block';
+    processingText.textContent = '正在处理中，请稍候';
+    clearLogs();
+
+    // Step 3: Connect SSE for real-time progress
+    await new Promise((resolve, reject) => {
+      const evtSource = new EventSource('/progress/' + taskId);
+      let settled = false;
+
+      const settle = (fn, val) => {
+        if (settled) return;
+        settled = true;
+        evtSource.close();
+        fn(val);
+      };
+
+      evtSource.addEventListener('step_start', e => {
+        const { step, message } = JSON.parse(e.data);
+        activateStep(step);
+        if (message) {
+          processingText.textContent = message;
+          addLog(message);
+        }
+      });
+
+      evtSource.addEventListener('step_done', e => {
+        const { step } = JSON.parse(e.data);
+        completeStep(step);
+      });
+
+      evtSource.addEventListener('log', e => {
+        const { message } = JSON.parse(e.data);
+        addLog(message);
+      });
+
+      evtSource.addEventListener('done', e => {
+        settle(resolve, JSON.parse(e.data).task_id);
+      });
+
+      evtSource.addEventListener('task_error', e => {
+        settle(reject, new Error(JSON.parse(e.data).message || '处理失败'));
+      });
+
+      evtSource.onerror = () => {
+        settle(reject, new Error('处理过程中连接中断'));
+      };
+    });
+
+    // Step 4: Download result audio
+    const resp = await fetch('/download/' + taskId);
+    if (!resp.ok) throw new Error('下载失败');
+    const audioBlob = await resp.blob();
+
+    // Show result
     hide(processingSection);
     processingSection.style.display = '';
 
@@ -856,12 +926,10 @@ submitBtn.addEventListener('click', async () => {
     resultSection.style.display = 'block';
 
   } catch (err) {
-    // Reset and show error
     hide(progressSection);
     progressSection.style.display = '';
     hide(processingSection);
     processingSection.style.display = '';
-    stopStepAnimation();
     resetSteps();
     resetUI();
     showError(err.message || '处理失败，请重试');
@@ -869,15 +937,13 @@ submitBtn.addEventListener('click', async () => {
 });
 
 function resetUI() {
-  // Reset progress
   progressBar.style.width = '0%';
   progressPct.textContent = '0%';
   progressStatus.textContent = '正在上传';
-
-  // Show upload UI
   dropzone.style.display = '';
   clearFile();
   resetSteps();
+  clearLogs();
 }
 
 // Reset button
