@@ -2,7 +2,8 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '*'
 
 jobs:
   deploy:
@@ -18,12 +19,13 @@ jobs:
             if [ -d ~/podcast-transcribe-chinese/.git ]; then
               cd ~/podcast-transcribe-chinese
               git remote set-url origin https://github.com/${{ github.repository }}.git
-              git pull origin main
+              git fetch --tags
             else
               rm -rf ~/podcast-transcribe-chinese
               git clone https://github.com/${{ github.repository }}.git ~/podcast-transcribe-chinese
               cd ~/podcast-transcribe-chinese
             fi
+            git checkout ${{ github.ref_name }}
 
             docker compose up -d --build --force-recreate
             docker image prune -f

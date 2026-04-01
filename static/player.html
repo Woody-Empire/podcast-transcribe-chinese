@@ -6,60 +6,74 @@
 <title>播刻 — 播放</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300&family=Noto+Serif+SC:wght@300;500;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --ink: #1a1714;
-  --paper: #f5f0e8;
-  --paper-deep: #ebe4d8;
-  --vermillion: #c73e1d;
-  --vermillion-soft: rgba(199, 62, 29, 0.12);
-  --stone: #8a8279;
-  --stone-light: #b5aea5;
-  --shadow: rgba(26, 23, 20, 0.06);
-  --font-display: 'Cormorant Garamond', serif;
-  --font-cn: 'Noto Serif SC', serif;
-  --font-mono: 'DM Mono', monospace;
+  --ink: #1a1a1a;
+  --paper: #ffffff;
+  --paper-deep: #f4f4f4;
+  --accent: #c73e1d;
+  --accent-soft: rgba(199, 62, 29, 0.08);
+  --stone: #666666;
+  --stone-light: #999999;
+  --border: #e0e0e0;
+  --font-mono: 'IBM Plex Mono', 'Menlo', 'Consolas', monospace;
+  --font-cn: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --sidebar-w: 220px;
+
+  --speaker-0: rgba(37, 99, 235, 0.07);
+  --speaker-0-border: rgba(37, 99, 235, 0.3);
+  --speaker-1: rgba(22, 163, 74, 0.07);
+  --speaker-1-border: rgba(22, 163, 74, 0.3);
+  --speaker-2: rgba(147, 51, 234, 0.07);
+  --speaker-2-border: rgba(147, 51, 234, 0.3);
+  --speaker-3: rgba(234, 88, 12, 0.07);
+  --speaker-3-border: rgba(234, 88, 12, 0.3);
+  --speaker-4: rgba(219, 39, 119, 0.07);
+  --speaker-4-border: rgba(219, 39, 119, 0.3);
+  --speaker-5: rgba(14, 165, 233, 0.07);
+  --speaker-5-border: rgba(14, 165, 233, 0.3);
+
+  --speaker-0-tag: #2563eb;
+  --speaker-1-tag: #16a34a;
+  --speaker-2-tag: #9333ea;
+  --speaker-3-tag: #ea580c;
+  --speaker-4-tag: #db2777;
+  --speaker-5-tag: #0ea5e9;
 }
 
 html { font-size: 16px; }
 
 body {
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-cn);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ── Top bar ── */
 .top-bar {
-  width: 100%;
-  max-width: 640px;
-  padding: 1.2rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  opacity: 0;
-  animation: fadeDown 0.6s ease 0.1s forwards;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  height: 45px;
 }
 
 .top-bar-brand {
   font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 1.2rem;
-  letter-spacing: 0.12em;
-  color: var(--paper);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--ink);
   text-decoration: none;
-  transition: opacity 0.2s;
 }
 
-.top-bar-brand:hover { opacity: 0.7; }
+.top-bar-brand:hover { opacity: 0.6; }
 
 .top-bar-right {
   display: flex;
@@ -73,6 +87,11 @@ body {
   color: var(--stone);
 }
 
+.top-bar-user::before {
+  content: '> ';
+  color: var(--accent);
+}
+
 .top-bar-right a,
 .top-bar-right button {
   font-family: var(--font-mono);
@@ -82,22 +101,119 @@ body {
   border: none;
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.15s;
 }
 
 .top-bar-right a:hover,
-.top-bar-right button:hover { color: var(--vermillion); }
+.top-bar-right button:hover { color: var(--accent); }
 
-/* ── Main player area ── */
-.player-container {
-  width: 100%;
-  max-width: 640px;
-  padding: 0 1.5rem 2rem;
-  flex: 1;
+/* ── Page layout ── */
+.page-layout {
+  display: flex;
+  height: calc(100vh - 45px);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  opacity: 0;
-  animation: fadeUp 0.6s ease 0.2s forwards;
+  overflow: hidden;
+}
+
+.sidebar-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--stone);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1rem 1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-list::-webkit-scrollbar { width: 2px; }
+.sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.sidebar-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+.sidebar-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-cn);
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  border-left: 2px solid transparent;
+}
+
+.sidebar-item:hover {
+  background: var(--paper-deep);
+}
+
+.sidebar-item.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+
+.sidebar-item-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--stone-light);
+  margin-top: 0.1rem;
+}
+
+.sidebar-empty {
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone-light);
+}
+
+.sidebar-upload {
+  display: block;
+  margin: 0.5rem 0.8rem 0.8rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--stone);
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.sidebar-upload:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Main player area ── */
+.player-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* ── Empty state ── */
@@ -107,21 +223,19 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3rem 0;
 }
 
 .empty-state.visible { display: flex; }
 
 .empty-text {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
   color: var(--stone);
   line-height: 1.8;
 }
 
 .empty-text a {
-  color: var(--vermillion);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -130,145 +244,178 @@ body {
 /* ── Now playing ── */
 .now-playing {
   display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 
-.now-playing.visible { display: block; }
+.now-playing.visible { display: flex; }
+
+/* Player header */
+.player-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
 
 .podcast-title {
   font-family: var(--font-cn);
   font-weight: 500;
-  font-size: 1.15rem;
-  color: var(--paper);
-  margin-bottom: 1.4rem;
-  line-height: 1.5;
+  font-size: 1.05rem;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 0.8rem;
 }
 
 audio {
   width: 100%;
-  height: 40px;
-  border-radius: 8px;
+  height: 36px;
+  border-radius: 4px;
   outline: none;
-  filter: invert(1) hue-rotate(180deg) brightness(0.85);
 }
 
-/* ── Subtitle area ── */
-.subtitle-header {
+.player-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 1.4rem;
-  margin-bottom: 0.6rem;
+  margin-top: 0.6rem;
 }
 
-.subtitle-label {
+.btn-action {
+  padding: 0.35rem 0.6rem;
+  border-radius: 3px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--border);
+  background: transparent;
   color: var(--stone);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+}
+
+.btn-action:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
+.btn-action svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
 }
 
 .btn-en-toggle {
-  padding: 0.3rem 0.7rem;
-  border-radius: 5px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
   cursor: pointer;
-  transition: all 0.25s ease;
-  border: 1px solid rgba(245, 240, 232, 0.2);
+  transition: all 0.2s;
+  border: 1px solid var(--border);
   background: transparent;
   color: var(--stone);
 }
 
 .btn-en-toggle.active {
-  background: var(--vermillion);
-  border-color: var(--vermillion);
+  background: var(--ink);
+  border-color: var(--ink);
   color: var(--paper);
 }
 
-.subtitle-wrapper {
-  position: relative;
+/* ── Subtitle area ── */
+.subtitle-area {
   flex: 1;
-  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
 
-.subtitle-wrapper::before,
-.subtitle-wrapper::after {
+.subtitle-area::before,
+.subtitle-area::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  height: 28px;
+  height: 20px;
   pointer-events: none;
   z-index: 2;
 }
 
-.subtitle-wrapper::before {
+.subtitle-area::before {
   top: 0;
-  background: linear-gradient(to bottom, var(--ink), transparent);
+  background: linear-gradient(to bottom, var(--paper), transparent);
 }
 
-.subtitle-wrapper::after {
+.subtitle-area::after {
   bottom: 0;
-  background: linear-gradient(to top, var(--ink), transparent);
+  background: linear-gradient(to top, var(--paper), transparent);
 }
 
 .subtitle-container {
-  height: calc(100vh - 320px);
-  min-height: 200px;
+  height: 100%;
   overflow-y: auto;
-  padding: 1.2rem 0;
-  position: relative;
+  padding: 0.8rem 1.5rem;
 }
 
-.subtitle-container::-webkit-scrollbar { width: 3px; }
+.subtitle-container::-webkit-scrollbar { width: 2px; }
 .subtitle-container::-webkit-scrollbar-track { background: transparent; }
-.subtitle-container::-webkit-scrollbar-thumb {
-  background: rgba(245, 240, 232, 0.15);
-  border-radius: 2px;
-}
+.subtitle-container::-webkit-scrollbar-thumb { background: var(--border); }
 
 .subtitle-entry {
-  padding: 0.55rem 0.8rem;
-  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   opacity: 0.3;
   border-left: 2px solid transparent;
+  margin-bottom: 2px;
 }
 
-.subtitle-entry:hover {
-  opacity: 0.55;
-  background: rgba(245, 240, 232, 0.04);
-}
+.subtitle-entry:hover { opacity: 0.6; }
+.subtitle-entry.active { opacity: 1; }
+.subtitle-entry.past { opacity: 0.5; }
 
-.subtitle-entry.active {
-  opacity: 1;
-  background: rgba(245, 240, 232, 0.07);
-  border-left-color: var(--vermillion);
-}
-
-.subtitle-entry.past {
-  opacity: 0.5;
-}
+/* Speaker colors */
+.subtitle-entry[data-speaker="0"] { background: var(--speaker-0); }
+.subtitle-entry[data-speaker="0"].active { border-left-color: var(--speaker-0-border); }
+.subtitle-entry[data-speaker="1"] { background: var(--speaker-1); }
+.subtitle-entry[data-speaker="1"].active { border-left-color: var(--speaker-1-border); }
+.subtitle-entry[data-speaker="2"] { background: var(--speaker-2); }
+.subtitle-entry[data-speaker="2"].active { border-left-color: var(--speaker-2-border); }
+.subtitle-entry[data-speaker="3"] { background: var(--speaker-3); }
+.subtitle-entry[data-speaker="3"].active { border-left-color: var(--speaker-3-border); }
+.subtitle-entry[data-speaker="4"] { background: var(--speaker-4); }
+.subtitle-entry[data-speaker="4"].active { border-left-color: var(--speaker-4-border); }
+.subtitle-entry[data-speaker="5"] { background: var(--speaker-5); }
+.subtitle-entry[data-speaker="5"].active { border-left-color: var(--speaker-5-border); }
 
 .subtitle-speaker {
   font-family: var(--font-mono);
   font-size: 0.6rem;
-  color: var(--vermillion);
-  opacity: 0.7;
-  margin-bottom: 0.15rem;
-  letter-spacing: 0.05em;
+  font-weight: 500;
+  opacity: 0.8;
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.04em;
 }
+
+.subtitle-entry[data-speaker="0"] .subtitle-speaker { color: var(--speaker-0-tag); }
+.subtitle-entry[data-speaker="1"] .subtitle-speaker { color: var(--speaker-1-tag); }
+.subtitle-entry[data-speaker="2"] .subtitle-speaker { color: var(--speaker-2-tag); }
+.subtitle-entry[data-speaker="3"] .subtitle-speaker { color: var(--speaker-3-tag); }
+.subtitle-entry[data-speaker="4"] .subtitle-speaker { color: var(--speaker-4-tag); }
+.subtitle-entry[data-speaker="5"] .subtitle-speaker { color: var(--speaker-5-tag); }
 
 .subtitle-chinese {
   font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.92rem;
-  color: var(--paper);
-  line-height: 1.75;
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.7;
 }
 
 .subtitle-english {
@@ -276,129 +423,29 @@ audio {
   font-size: 0.68rem;
   color: var(--stone);
   line-height: 1.5;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
 .subtitle-container.hide-english .subtitle-english {
   display: none;
 }
 
-/* ── History section ── */
-.history-section {
-  margin-top: 1.8rem;
-  border-top: 1px solid rgba(245, 240, 232, 0.08);
-  padding-top: 1.2rem;
-}
-
-.history-title {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--stone);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 0.8rem;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.65rem 0.8rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: transparent;
-  border: none;
-  color: var(--paper);
-  width: 100%;
-  text-align: left;
-}
-
-.history-item:hover {
-  background: rgba(245, 240, 232, 0.06);
-}
-
-.history-item.active {
-  background: rgba(199, 62, 29, 0.12);
-}
-
-.history-item-title {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.88rem;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.history-item-meta {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--stone);
-  flex-shrink: 0;
-  margin-left: 1rem;
-}
-
-/* ── Download bar ── */
-.action-bar {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: 1.2rem;
-}
-
-.btn-action {
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid rgba(245, 240, 232, 0.15);
-  background: transparent;
-  color: var(--stone);
-}
-
-.btn-action:hover {
-  background: rgba(245, 240, 232, 0.08);
-  color: var(--paper);
-}
-
-.btn-action svg {
-  width: 14px;
-  height: 14px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.8;
-}
-
-/* ── Animations ── */
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 540px) {
-  .top-bar { padding: 1rem 1rem; }
-  .player-container { padding: 0 1rem 2rem; }
-  .subtitle-container { height: calc(100vh - 360px); }
+@media (max-width: 700px) {
+  .page-layout { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 140px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-list { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+  .sidebar-item { white-space: nowrap; flex-shrink: 0; border-left: none; border-bottom: 2px solid transparent; }
+  .sidebar-item.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+  .sidebar-upload { display: none; }
+  .player-main { height: 0; flex: 1; }
+  .subtitle-container { padding: 0.8rem 1rem; }
+  .player-header { padding: 0.8rem 1rem; }
 }
 </style>
 </head>
@@ -413,42 +460,42 @@ audio {
   </div>
 </nav>
 
-<main class="player-container">
-  <!-- Empty state -->
-  <div class="empty-state" id="emptyState">
-    <div class="empty-text">
-      还没有播客记录<br>
-      <a href="/">上传一个播客开始收听</a>
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">播放列表</div>
+    <div class="sidebar-list" id="sidebarList">
+      <div class="sidebar-empty">暂无记录</div>
     </div>
-  </div>
+    <a href="/" class="sidebar-upload">+ 上传新播客</a>
+  </aside>
 
-  <!-- Now playing -->
-  <div class="now-playing" id="nowPlaying">
-    <h2 class="podcast-title" id="podcastTitle"></h2>
-    <audio controls id="audioPlayer"></audio>
-
-    <div class="action-bar">
-      <a class="btn-action" id="downloadBtn" download="podcast_chinese.mp3">
-        <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-        下载
-      </a>
+  <main class="player-main">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-text">
+        还没有播客记录<br>
+        <a href="/">上传一个播客开始收听</a>
+      </div>
     </div>
 
-    <div class="subtitle-header">
-      <span class="subtitle-label">字幕</span>
-      <button class="btn-en-toggle active" id="enToggleBtn">EN</button>
-    </div>
-    <div class="subtitle-wrapper">
-      <div class="subtitle-container" id="subtitleContainer"></div>
-    </div>
+    <div class="now-playing" id="nowPlaying">
+      <div class="player-header">
+        <h2 class="podcast-title" id="podcastTitle"></h2>
+        <audio controls id="audioPlayer"></audio>
+        <div class="player-controls">
+          <a class="btn-action" id="downloadBtn" download="podcast_chinese.mp3">
+            <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+            下载
+          </a>
+          <button class="btn-en-toggle active" id="enToggleBtn">EN</button>
+        </div>
+      </div>
 
-    <!-- History -->
-    <div class="history-section" id="historySection" style="display:none">
-      <div class="history-title">播放历史</div>
-      <div class="history-list" id="historyList"></div>
+      <div class="subtitle-area">
+        <div class="subtitle-container" id="subtitleContainer"></div>
+      </div>
     </div>
-  </div>
-</main>
+  </main>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -460,8 +507,7 @@ const podcastTitle = $('podcastTitle');
 const downloadBtn = $('downloadBtn');
 const nowPlaying = $('nowPlaying');
 const emptyState = $('emptyState');
-const historySection = $('historySection');
-const historyList = $('historyList');
+const sidebarList = $('sidebarList');
 
 let subtitleData = null;
 let currentSubIdx = -1;
@@ -469,21 +515,25 @@ let showEnglish = true;
 let currentPodcastId = null;
 let saveTimer = null;
 
-// ── Auth check ──
+const speakerIndexMap = new Map();
+let nextSpeakerIndex = 0;
+
+function getSpeakerIndex(speaker) {
+  if (!speakerIndexMap.has(speaker)) {
+    speakerIndexMap.set(speaker, nextSpeakerIndex % 6);
+    nextSpeakerIndex++;
+  }
+  return speakerIndexMap.get(speaker);
+}
+
 async function checkAuth() {
   try {
     const resp = await fetch('/api/me');
-    if (!resp.ok) {
-      window.location.href = '/';
-      return null;
-    }
+    if (!resp.ok) { window.location.href = '/'; return null; }
     const data = await resp.json();
     $('topBarUser').textContent = data.username;
     return data;
-  } catch {
-    window.location.href = '/';
-    return null;
-  }
+  } catch { window.location.href = '/'; return null; }
 }
 
 $('logoutBtn').addEventListener('click', async () => {
@@ -491,7 +541,6 @@ $('logoutBtn').addEventListener('click', async () => {
   window.location.href = '/';
 });
 
-// ── Subtitle logic ──
 function escapeHtml(text) {
   const d = document.createElement('div');
   d.textContent = text;
@@ -500,68 +549,54 @@ function escapeHtml(text) {
 
 function renderSubtitles() {
   subtitleContainer.innerHTML = '';
+  speakerIndexMap.clear();
+  nextSpeakerIndex = 0;
   if (!subtitleData || !subtitleData.subtitles || !subtitleData.subtitles.length) return;
 
   subtitleData.subtitles.forEach((sub, i) => {
     const el = document.createElement('div');
     el.className = 'subtitle-entry';
     el.dataset.index = i;
+    if (sub.speaker) el.dataset.speaker = getSpeakerIndex(sub.speaker);
 
     let html = '';
-    if (sub.speaker) {
-      html += `<div class="subtitle-speaker">Speaker ${sub.speaker}</div>`;
-    }
+    if (sub.speaker) html += `<div class="subtitle-speaker">Speaker ${sub.speaker}</div>`;
     html += `<div class="subtitle-chinese">${escapeHtml(sub.chinese)}</div>`;
-    if (sub.english) {
-      html += `<div class="subtitle-english">${escapeHtml(sub.english)}</div>`;
-    }
+    if (sub.english) html += `<div class="subtitle-english">${escapeHtml(sub.english)}</div>`;
     el.innerHTML = html;
 
     el.addEventListener('click', () => {
       audioPlayer.currentTime = sub.start;
       audioPlayer.play();
     });
-
     subtitleContainer.appendChild(el);
   });
-
   currentSubIdx = -1;
 }
 
 function syncSubtitle() {
   if (!subtitleData || !subtitleData.subtitles || !subtitleData.subtitles.length) return;
-
   const t = audioPlayer.currentTime;
   const subs = subtitleData.subtitles;
-
   let lo = 0, hi = subs.length - 1, idx = -1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
-    if (t < subs[mid].start) {
-      hi = mid - 1;
-    } else if (t >= subs[mid].end) {
-      lo = mid + 1;
-    } else {
-      idx = mid;
-      break;
-    }
+    if (t < subs[mid].start) hi = mid - 1;
+    else if (t >= subs[mid].end) lo = mid + 1;
+    else { idx = mid; break; }
   }
-
   if (idx === currentSubIdx) return;
   currentSubIdx = idx;
-
   const entries = subtitleContainer.querySelectorAll('.subtitle-entry');
   entries.forEach((el, i) => {
     el.classList.toggle('active', i === idx);
     el.classList.toggle('past', idx >= 0 && i < idx);
   });
-
   if (idx >= 0 && entries[idx]) {
     const entry = entries[idx];
-    const containerRect = subtitleContainer.getBoundingClientRect();
-    const entryRect = entry.getBoundingClientRect();
-    const offset = entryRect.top - containerRect.top - containerRect.height / 2 + entryRect.height / 2;
-    subtitleContainer.scrollBy({ top: offset, behavior: 'smooth' });
+    const cr = subtitleContainer.getBoundingClientRect();
+    const er = entry.getBoundingClientRect();
+    subtitleContainer.scrollBy({ top: er.top - cr.top - cr.height / 2 + er.height / 2, behavior: 'smooth' });
   }
 }
 
@@ -573,11 +608,10 @@ enToggleBtn.addEventListener('click', () => {
   subtitleContainer.classList.toggle('hide-english', !showEnglish);
 });
 
-// ── Progress saving ──
-let hasPlayedSinceResume = true;
+// Progress saving
+let switchingPodcast = false;
 
 function saveProgress() {
-  if (!hasPlayedSinceResume) return;
   if (currentPodcastId && audioPlayer.currentTime > 0) {
     fetch(`/api/progress/${currentPodcastId}`, {
       method: 'POST',
@@ -587,78 +621,66 @@ function saveProgress() {
   }
 }
 
-function startSavingProgress() {
-  stopSavingProgress();
-  hasPlayedSinceResume = true;
-  saveTimer = setInterval(saveProgress, 5000);
-}
+function startSavingProgress() { stopSavingProgress(); saveTimer = setInterval(saveProgress, 5000); }
+function stopSavingProgress() { if (saveTimer) { clearInterval(saveTimer); saveTimer = null; } }
 
-function stopSavingProgress() {
-  if (saveTimer) {
-    clearInterval(saveTimer);
-    saveTimer = null;
-  }
-}
-
-// Save progress on pause and before leaving
-audioPlayer.addEventListener('pause', saveProgress);
-
+audioPlayer.addEventListener('pause', () => { if (!switchingPodcast) saveProgress(); });
+audioPlayer.addEventListener('seeked', saveProgress);
 window.addEventListener('beforeunload', () => {
-  if (!hasPlayedSinceResume) return;
   if (currentPodcastId && audioPlayer.currentTime > 0) {
-    navigator.sendBeacon(
-      `/api/progress/${currentPodcastId}`,
-      new Blob([JSON.stringify({ position: audioPlayer.currentTime })], { type: 'application/json' })
-    );
+    navigator.sendBeacon(`/api/progress/${currentPodcastId}`,
+      new Blob([JSON.stringify({ position: audioPlayer.currentTime })], { type: 'application/json' }));
   }
 });
-
 audioPlayer.addEventListener('play', startSavingProgress);
-audioPlayer.addEventListener('pause', stopSavingProgress);
+audioPlayer.addEventListener('pause', () => { if (!switchingPodcast) stopSavingProgress(); });
 audioPlayer.addEventListener('ended', stopSavingProgress);
 
-// ── Load podcast ──
 async function loadPodcast(podcastId, resumePosition) {
+  // If already playing this podcast, do nothing
+  if (currentPodcastId === podcastId && audioPlayer.src) return;
+
+  // Save progress for the old podcast before switching
+  if (currentPodcastId && currentPodcastId !== podcastId && audioPlayer.currentTime > 0) {
+    saveProgress();
+  }
+  stopSavingProgress();
+
+  switchingPodcast = true;
   currentPodcastId = podcastId;
   subtitleData = null;
   currentSubIdx = -1;
   subtitleContainer.innerHTML = '';
 
-  // Set audio source
   audioPlayer.src = `/podcast/${podcastId}/audio`;
+  switchingPodcast = false;
   downloadBtn.href = `/podcast/${podcastId}/audio`;
 
-  // Load subtitles
   try {
     const resp = await fetch(`/podcast/${podcastId}/subtitles`);
-    if (resp.ok) {
-      subtitleData = await resp.json();
-      renderSubtitles();
-    }
+    if (resp.ok) { subtitleData = await resp.json(); renderSubtitles(); }
   } catch {}
 
-  // Get saved progress if not provided
   if (resumePosition === undefined) {
     try {
       const resp = await fetch(`/api/progress/${podcastId}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        resumePosition = data.position || 0;
-      }
+      if (resp.ok) { const data = await resp.json(); resumePosition = data.position || 0; }
     } catch {}
   }
 
-  // Resume position when audio is ready
   if (resumePosition > 0) {
-    hasPlayedSinceResume = false;
-    audioPlayer.addEventListener('loadedmetadata', function onMeta() {
-      audioPlayer.removeEventListener('loadedmetadata', onMeta);
-      audioPlayer.currentTime = Math.max(0, resumePosition - 5);
-    });
+    if (audioPlayer.readyState >= 1) {
+      audioPlayer.currentTime = resumePosition;
+    } else {
+      audioPlayer.addEventListener('loadedmetadata', function onMeta() {
+        audioPlayer.removeEventListener('loadedmetadata', onMeta);
+        audioPlayer.currentTime = resumePosition;
+      });
+    }
   }
 
-  // Update history active state
-  historyList.querySelectorAll('.history-item').forEach(el => {
+  // Update sidebar active
+  sidebarList.querySelectorAll('.sidebar-item').forEach(el => {
     el.classList.toggle('active', el.dataset.id === podcastId);
   });
 
@@ -666,7 +688,6 @@ async function loadPodcast(podcastId, resumePosition) {
   nowPlaying.classList.add('visible');
 }
 
-// ── History ──
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'Z');
@@ -679,76 +700,61 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('zh-CN');
 }
 
-async function loadHistory() {
+async function loadSidebar() {
   try {
     const resp = await fetch('/api/podcasts');
     if (!resp.ok) return [];
     const podcasts = await resp.json();
 
+    sidebarList.innerHTML = '';
     if (podcasts.length === 0) {
-      historySection.style.display = 'none';
+      sidebarList.innerHTML = '<div class="sidebar-empty">暂无记录</div>';
       return podcasts;
     }
 
-    historySection.style.display = '';
-    historyList.innerHTML = '';
-
     podcasts.forEach(p => {
       const btn = document.createElement('button');
-      btn.className = 'history-item';
+      btn.className = 'sidebar-item';
       btn.dataset.id = p.id;
       if (p.id === currentPodcastId) btn.classList.add('active');
 
       const dateStr = p.last_played_at || p.created_at;
-      btn.innerHTML = `
-        <span class="history-item-title">${escapeHtml(p.title)}</span>
-        <span class="history-item-meta">${formatDate(dateStr)}</span>
-      `;
+      btn.innerHTML = escapeHtml(p.title) + `<span class="sidebar-item-meta">${formatDate(dateStr)}</span>`;
 
       btn.addEventListener('click', () => {
         podcastTitle.textContent = p.title;
         loadPodcast(p.id);
-        // Update active state
-        historyList.querySelectorAll('.history-item').forEach(el => {
+        sidebarList.querySelectorAll('.sidebar-item').forEach(el => {
           el.classList.toggle('active', el.dataset.id === p.id);
         });
       });
 
-      historyList.appendChild(btn);
+      sidebarList.appendChild(btn);
     });
 
     return podcasts;
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-// ── Init ──
 async function init() {
   const userData = await checkAuth();
   if (!userData) return;
 
-  const podcasts = await loadHistory();
-
-  // Determine which podcast to play
+  const podcasts = await loadSidebar();
   const params = new URLSearchParams(window.location.search);
   const requestedId = params.get('id');
 
   if (requestedId) {
-    // Play specific podcast (e.g., after processing)
     const podcast = podcasts.find(p => p.id === requestedId);
     podcastTitle.textContent = podcast ? podcast.title : '播客';
-    await loadPodcast(requestedId, 0);
+    await loadPodcast(requestedId);
   } else if (userData.last_played) {
-    // Resume last played
     podcastTitle.textContent = userData.last_played.title;
     await loadPodcast(userData.last_played.podcast_id, userData.last_played.position);
   } else if (podcasts.length > 0) {
-    // Play most recent
     podcastTitle.textContent = podcasts[0].title;
     await loadPodcast(podcasts[0].id);
   } else {
-    // No podcasts
     emptyState.classList.add('visible');
   }
 }

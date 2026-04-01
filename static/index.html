@@ -6,22 +6,22 @@
 <title>播刻 — Podcast to Chinese</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300&family=Noto+Serif+SC:wght@300;500;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --ink: #1a1714;
-  --paper: #f5f0e8;
-  --paper-deep: #ebe4d8;
-  --vermillion: #c73e1d;
-  --vermillion-soft: rgba(199, 62, 29, 0.12);
-  --stone: #8a8279;
-  --stone-light: #b5aea5;
-  --shadow: rgba(26, 23, 20, 0.06);
-  --font-display: 'Cormorant Garamond', serif;
-  --font-cn: 'Noto Serif SC', serif;
-  --font-mono: 'DM Mono', monospace;
+  --ink: #1a1a1a;
+  --paper: #ffffff;
+  --paper-deep: #f4f4f4;
+  --accent: #c73e1d;
+  --accent-soft: rgba(199, 62, 29, 0.08);
+  --stone: #666666;
+  --stone-light: #999999;
+  --border: #e0e0e0;
+  --font-mono: 'IBM Plex Mono', 'Menlo', 'Consolas', monospace;
+  --font-cn: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --sidebar-w: 220px;
 }
 
 html { font-size: 16px; }
@@ -29,89 +29,48 @@ html { font-size: 16px; }
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-cn);
+  font-family: var(--font-mono);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   overflow-x: hidden;
-  position: relative;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-}
-
-.header {
-  text-align: center;
-  margin-top: 5rem;
-  position: relative;
-  z-index: 1;
-  opacity: 0;
-  animation: fadeDown 0.8s ease 0.2s forwards;
-}
-
-.header h1 {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 2.8rem;
-  letter-spacing: 0.15em;
-  color: var(--ink);
-  line-height: 1.1;
-}
-
-.header .subtitle {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.95rem;
-  color: var(--stone);
-  margin-top: 0.75rem;
-  letter-spacing: 0.15em;
-}
-
-.container {
-  width: 100%;
-  max-width: 520px;
-  padding: 0 1.5rem;
-  margin-top: 3.5rem;
-  position: relative;
-  z-index: 1;
-  opacity: 0;
-  animation: fadeUp 0.8s ease 0.4s forwards;
-}
-
-/* ── User bar ── */
-.user-bar {
-  display: none;
+/* ── Top bar ── */
+.top-bar {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0.6rem 1rem;
-  background: var(--paper-deep);
-  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.user-bar.visible { display: flex; }
-
-.user-bar-name {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
+.top-bar-brand {
+  font-family: var(--font-cn);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
   color: var(--ink);
+  text-decoration: none;
 }
 
-.user-bar-actions {
+.top-bar-right {
   display: flex;
-  gap: 0.8rem;
   align-items: center;
+  gap: 1rem;
 }
 
-.user-bar-actions a,
-.user-bar-actions button {
+.top-bar-user {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone);
+}
+
+.top-bar-user::before {
+  content: '> ';
+  color: var(--accent);
+}
+
+.top-bar-right a,
+.top-bar-right button {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--stone);
@@ -119,37 +78,177 @@ body::before {
   border: none;
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.15s;
 }
 
-.user-bar-actions a:hover,
-.user-bar-actions button:hover {
-  color: var(--vermillion);
-}
+.top-bar-right a:hover,
+.top-bar-right button:hover { color: var(--accent); }
 
-/* ── Auth form ── */
-.auth-section {
+/* ── Page layout ── */
+.page-layout {
   display: none;
+  min-height: calc(100vh - 45px);
 }
 
-.auth-section.visible {
+.page-layout.visible {
+  display: flex;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding: 1rem 0;
+  overflow-y: auto;
+  height: calc(100vh - 45px);
+  position: sticky;
+  top: 45px;
+}
+
+.sidebar-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--stone);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-item {
   display: block;
-  animation: fadeUp 0.5s ease forwards;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-cn);
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-left: 2px solid transparent;
+}
+
+.sidebar-item:hover {
+  background: var(--paper-deep);
+}
+
+.sidebar-item.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+
+.sidebar-item-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--stone-light);
+  margin-top: 0.1rem;
+}
+
+.sidebar-empty {
+  padding: 0.8rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone-light);
+}
+
+.sidebar-upload {
+  display: block;
+  margin: 0.5rem 0.8rem 0;
+  padding: 0.45rem 0.6rem;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--stone);
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.15s;
+  cursor: pointer;
+  background: none;
+  width: calc(100% - 1.6rem);
+}
+
+.sidebar-upload:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Main content ── */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Auth (centered, full page before login) ── */
+.auth-page {
+  display: none;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-page.visible {
+  display: flex;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.auth-header h1 {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 2.4rem;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+}
+
+.auth-header .subtitle {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 0.8rem;
+  color: var(--stone);
+  margin-top: 0.6rem;
+  letter-spacing: 0.08em;
 }
 
 .auth-card {
-  background: var(--paper-deep);
-  border-radius: 12px;
-  padding: 2.2rem 2rem;
+  width: 100%;
+  max-width: 360px;
+  padding: 0 1.5rem;
+}
+
+.auth-card-inner {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2rem;
 }
 
 .auth-title {
-  font-family: var(--font-cn);
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 1.1rem;
-  text-align: center;
-  margin-bottom: 1.6rem;
+  font-size: 0.9rem;
+  margin-bottom: 1.4rem;
   color: var(--ink);
+}
+
+.auth-title::before {
+  content: '$ ';
+  color: var(--accent);
 }
 
 .auth-field {
@@ -161,58 +260,55 @@ body::before {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--stone);
-  letter-spacing: 0.06em;
-  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
 }
 
 .auth-field input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1.5px solid var(--stone-light);
-  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
   background: var(--paper);
-  font-family: var(--font-cn);
-  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
   color: var(--ink);
   outline: none;
-  transition: border-color 0.3s;
+  transition: border-color 0.2s;
 }
 
 .auth-field input:focus {
-  border-color: var(--vermillion);
+  border-color: var(--ink);
 }
 
 .auth-submit {
   width: 100%;
   margin-top: 0.5rem;
-  padding: 0.85rem;
-  border: none;
-  border-radius: 10px;
+  padding: 0.75rem;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
   background: var(--ink);
   color: var(--paper);
-  font-family: var(--font-cn);
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.92rem;
-  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background 0.2s;
 }
 
-.auth-submit:hover {
-  background: #2d2924;
-  transform: translateY(-1px);
-}
+.auth-submit:hover { background: #333; }
 
 .auth-toggle {
   text-align: center;
-  margin-top: 1.2rem;
+  margin-top: 1rem;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--stone);
 }
 
 .auth-toggle a {
-  color: var(--vermillion);
+  color: var(--accent);
   cursor: pointer;
   text-decoration: none;
 }
@@ -222,48 +318,59 @@ body::before {
 .auth-error {
   display: none;
   margin-top: 0.8rem;
-  padding: 0.6rem 0.8rem;
-  background: var(--vermillion-soft);
-  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--vermillion);
+  color: var(--accent);
 }
 
 .auth-error.visible { display: block; }
 
-/* ── Drop zone ── */
+/* ── Upload area ── */
+.upload-area {
+  width: 100%;
+  max-width: 520px;
+  padding: 3rem 1.5rem 2rem;
+}
+
+.upload-title {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
 .dropzone {
-  position: relative;
-  border: 1.5px dashed var(--stone-light);
-  border-radius: 12px;
-  padding: 3.5rem 2rem;
+  border: 1px dashed var(--stone-light);
+  border-radius: 4px;
+  padding: 3rem 2rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  background: transparent;
+  transition: all 0.2s;
 }
 
 .dropzone:hover {
-  border-color: var(--vermillion);
-  background: var(--vermillion-soft);
+  border-color: var(--ink);
+  background: var(--paper-deep);
 }
 
 .dropzone.drag-over {
-  border-color: var(--vermillion);
-  background: var(--vermillion-soft);
-  transform: scale(1.01);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .dropzone-icon {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 1.2rem;
-  opacity: 0.35;
-  transition: opacity 0.3s ease;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 1rem;
+  opacity: 0.3;
 }
 
-.dropzone:hover .dropzone-icon { opacity: 0.6; }
+.dropzone:hover .dropzone-icon { opacity: 0.5; }
 
 .dropzone-icon svg {
   width: 100%;
@@ -278,7 +385,7 @@ body::before {
 .dropzone-text {
   font-family: var(--font-cn);
   font-weight: 300;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--stone);
   line-height: 1.7;
 }
@@ -290,57 +397,53 @@ body::before {
 
 .dropzone-hint {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--stone-light);
-  margin-top: 0.8rem;
-  letter-spacing: 0.06em;
+  margin-top: 0.7rem;
 }
 
 input[type="file"] { display: none; }
 
 .file-info {
   display: none;
-  margin-top: 1.5rem;
-  padding: 1.2rem 1.4rem;
+  margin-top: 1.2rem;
+  padding: 0.8rem 1rem;
   background: var(--paper-deep);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
   align-items: center;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .file-info.visible {
   display: flex;
-  animation: fadeUp 0.4s ease forwards;
+  animation: fadeUp 0.3s ease forwards;
 }
 
 .file-icon {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background: var(--ink);
-  border-radius: 8px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .file-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   stroke: var(--paper);
   fill: none;
   stroke-width: 1.5;
 }
 
-.file-details {
-  flex: 1;
-  min-width: 0;
-}
+.file-details { flex: 1; min-width: 0; }
 
 .file-name {
   font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 400;
+  font-size: 0.8rem;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
@@ -349,26 +452,26 @@ input[type="file"] { display: none; }
 
 .file-size {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--stone);
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
 }
 
 .file-remove {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background 0.2s ease;
+  border-radius: 3px;
+  transition: background 0.15s;
 }
 
-.file-remove:hover { background: var(--shadow); }
+.file-remove:hover { background: var(--border); }
 
 .file-remove svg {
   width: 14px;
@@ -381,62 +484,40 @@ input[type="file"] { display: none; }
 .submit-btn {
   display: none;
   width: 100%;
-  margin-top: 1.2rem;
-  padding: 1rem;
-  border: none;
-  border-radius: 10px;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
   background: var(--ink);
   color: var(--paper);
-  font-family: var(--font-cn);
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.95rem;
-  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative;
-  overflow: hidden;
+  transition: background 0.2s;
 }
 
-.submit-btn.visible {
-  display: block;
-  animation: fadeUp 0.4s ease forwards;
-}
-
-.submit-btn:hover {
-  background: #2d2924;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px var(--shadow);
-}
-
-.submit-btn:active { transform: translateY(0); }
-
-.submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+.submit-btn.visible { display: block; }
+.submit-btn:hover { background: #333; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .progress-section {
   display: none;
-  margin-top: 1.5rem;
+  margin-top: 1.2rem;
 }
 
-.progress-section.visible {
-  display: block;
-  animation: fadeUp 0.5s ease forwards;
-}
+.progress-section.visible { display: block; }
 
 .progress-label {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
 }
 
 .progress-status {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.88rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   color: var(--ink);
 }
 
@@ -448,46 +529,40 @@ input[type="file"] { display: none; }
 
 .progress-track {
   width: 100%;
-  height: 3px;
-  background: var(--paper-deep);
-  border-radius: 2px;
+  height: 2px;
+  background: var(--border);
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: var(--vermillion);
-  border-radius: 2px;
-  transition: width 0.3s ease;
+  background: var(--accent);
+  transition: width 0.3s;
 }
 
 .processing-section {
   display: none;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
-.processing-section.visible {
-  display: block;
-  animation: fadeUp 0.5s ease forwards;
-}
+.processing-section.visible { display: block; }
 
 .processing-wave {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  height: 40px;
-  margin-bottom: 1.2rem;
+  gap: 3px;
+  height: 36px;
+  margin-bottom: 1rem;
 }
 
 .processing-wave span {
   display: block;
   width: 2px;
-  height: 8px;
-  background: var(--vermillion);
-  border-radius: 1px;
+  height: 6px;
+  background: var(--accent);
   animation: wave 1.2s ease-in-out infinite;
 }
 
@@ -502,83 +577,86 @@ input[type="file"] { display: none; }
 .processing-wave span:nth-child(9) { animation-delay: 0.8s; }
 
 .processing-text {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
   color: var(--stone);
 }
 
 .processing-steps {
-  margin-top: 1.4rem;
+  margin-top: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  text-align: left;
 }
 
 .step {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--stone-light);
-  transition: color 0.3s ease;
+  transition: color 0.2s;
 }
 
 .step.active { color: var(--ink); }
 .step.done { color: var(--stone); }
 
 .step-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--stone-light);
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 }
 
 .step.active .step-dot {
-  background: var(--vermillion);
-  box-shadow: 0 0 0 3px var(--vermillion-soft);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
   animation: pulse 1.5s ease infinite;
 }
 
 .step.done .step-dot { background: var(--stone); }
 
 .processing-logs {
-  margin-top: 1.2rem;
+  margin-top: 1rem;
   max-height: 140px;
   overflow-y: auto;
   text-align: left;
-  padding: 0 0.2rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--paper-deep);
+  border: 1px solid var(--border);
+  border-radius: 3px;
 }
 
 .log-entry {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--stone);
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--paper-deep);
+  padding: 0.2rem 0;
   opacity: 0;
-  animation: fadeUp 0.3s ease forwards;
+  animation: fadeUp 0.2s ease forwards;
 }
 
-/* ── Result section (in-session preview) ── */
+.log-entry::before {
+  content: '> ';
+  color: var(--stone-light);
+}
+
 .result-section {
   display: none;
-  margin-top: 1.5rem;
+  margin-top: 1.2rem;
 }
 
-.result-section.visible {
-  display: block;
-  animation: fadeUp 0.6s ease forwards;
-}
+.result-section.visible { display: block; }
 
 .result-card {
-  background: var(--ink);
-  border-radius: 12px;
-  padding: 1.8rem;
-  color: var(--paper);
+  background: var(--paper-deep);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem;
   text-align: center;
 }
 
@@ -588,10 +666,10 @@ input[type="file"] { display: none; }
   gap: 0.4rem;
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  color: var(--vermillion);
-  letter-spacing: 0.1em;
+  color: var(--accent);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .result-badge::before {
@@ -599,60 +677,60 @@ input[type="file"] { display: none; }
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--vermillion);
+  background: var(--accent);
 }
 
 .result-title {
   font-family: var(--font-cn);
-  font-weight: 500;
-  font-size: 1.05rem;
-  margin-bottom: 1.4rem;
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin-bottom: 1.2rem;
   line-height: 1.5;
+  color: var(--ink);
 }
 
 .result-actions {
   display: flex;
-  gap: 0.8rem;
-  margin-top: 1.4rem;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
 }
 
 .btn-player, .btn-reset {
   flex: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-family: var(--font-cn);
+  padding: 0.65rem 0.8rem;
+  border-radius: 3px;
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   text-align: center;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   border: none;
 }
 
 .btn-player {
-  background: var(--vermillion);
+  background: var(--ink);
   color: var(--paper);
 }
 
-.btn-player:hover { background: #d4492a; }
+.btn-player:hover { background: #333; }
 
 .btn-reset {
-  background: rgba(245, 240, 232, 0.1);
-  color: var(--paper);
-  border: 1px solid rgba(245, 240, 232, 0.15);
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--border);
 }
 
-.btn-reset:hover { background: rgba(245, 240, 232, 0.18); }
+.btn-reset:hover { background: var(--paper-deep); }
 
 .btn-player svg, .btn-reset svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.8;
@@ -660,15 +738,14 @@ input[type="file"] { display: none; }
 
 .error-msg {
   display: none;
-  margin-top: 1.2rem;
-  padding: 1rem 1.2rem;
-  background: var(--vermillion-soft);
-  border-radius: 10px;
-  border-left: 3px solid var(--vermillion);
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--vermillion);
-  line-height: 1.6;
+  font-size: 0.75rem;
+  color: var(--accent);
+  line-height: 1.5;
 }
 
 .error-msg.visible {
@@ -676,74 +753,54 @@ input[type="file"] { display: none; }
   animation: shake 0.4s ease;
 }
 
-.footer {
-  margin-top: auto;
-  padding: 3rem 0 2rem;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--stone-light);
-  letter-spacing: 0.08em;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes wave {
-  0%, 100% { height: 8px; opacity: 0.4; }
-  50% { height: 28px; opacity: 1; }
+  0%, 100% { height: 6px; opacity: 0.3; }
+  50% { height: 24px; opacity: 1; }
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 3px var(--vermillion-soft); }
-  50% { box-shadow: 0 0 0 6px rgba(199, 62, 29, 0.06); }
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft); }
+  50% { box-shadow: 0 0 0 6px rgba(199, 62, 29, 0.04); }
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
 }
 
-@media (max-width: 540px) {
-  .header { margin-top: 3rem; }
-  .header h1 { font-size: 2.2rem; }
-  .container { margin-top: 2.5rem; }
-  .dropzone { padding: 2.5rem 1.5rem; }
+@media (max-width: 700px) {
+  .page-layout.visible { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    position: static;
+  }
+  .upload-area { padding: 2rem 1rem; }
+  .dropzone { padding: 2rem 1.2rem; }
 }
 </style>
 </head>
 <body>
 
-<header class="header">
-  <h1>播刻</h1>
-  <p class="subtitle">英文播客 — 中文声音</p>
-</header>
-
-<main class="container">
-
-  <!-- User bar (shown when logged in) -->
-  <div class="user-bar" id="userBar">
-    <span class="user-bar-name" id="userBarName"></span>
-    <div class="user-bar-actions">
-      <a href="/player" id="goPlayerBtn" style="display:none">继续收听</a>
-      <button id="logoutBtn">退出</button>
-    </div>
+<!-- Auth page (shown when not logged in) -->
+<div class="auth-page" id="authPage">
+  <div class="auth-header">
+    <h1>播刻</h1>
+    <p class="subtitle">英文播客 — 中文声音</p>
   </div>
-
-  <!-- Auth (shown when not logged in) -->
-  <div class="auth-section" id="authSection">
-    <div class="auth-card">
+  <div class="auth-card">
+    <div class="auth-card-inner">
       <div class="auth-title" id="authTitle">登录</div>
       <div class="auth-field">
         <label for="authUsername">用户名</label>
@@ -761,91 +818,109 @@ input[type="file"] { display: none; }
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Upload (shown when logged in) -->
-  <div id="uploadSection" style="display:none">
-    <div class="dropzone" id="dropzone">
-      <div class="dropzone-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
-      </div>
-      <p class="dropzone-text">
-        <strong>拖放音频文件</strong>至此处<br>或点击选择文件
-      </p>
-      <p class="dropzone-hint">MP3 / WAV / M4A</p>
+<!-- Main app (shown when logged in) -->
+<nav class="top-bar" id="topBar" style="display:none">
+  <a href="/" class="top-bar-brand">播刻</a>
+  <div class="top-bar-right">
+    <span class="top-bar-user" id="topBarUser"></span>
+    <a href="/player">播放页</a>
+    <button id="logoutBtn">退出</button>
+  </div>
+</nav>
+
+<div class="page-layout" id="pageLayout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">播放列表</div>
+    <div class="sidebar-list" id="sidebarList">
+      <div class="sidebar-empty">暂无翻译记录</div>
     </div>
-    <input type="file" id="fileInput" accept="audio/*">
+  </aside>
 
-    <div class="file-info" id="fileInfo">
-      <div class="file-icon">
-        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  <div class="main-content">
+    <div class="upload-area">
+      <div class="upload-title">上传播客</div>
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
+        </div>
+        <p class="dropzone-text">
+          <strong>拖放音频文件</strong>至此处<br>或点击选择文件
+        </p>
+        <p class="dropzone-hint">MP3 / WAV / M4A</p>
       </div>
-      <div class="file-details">
-        <div class="file-name" id="fileName"></div>
-        <div class="file-size" id="fileSize"></div>
-      </div>
-      <button class="file-remove" id="fileRemove" title="移除文件">
-        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
+      <input type="file" id="fileInput" accept="audio/*">
 
-    <button class="submit-btn" id="submitBtn">开始转录</button>
+      <div class="file-info" id="fileInfo">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="file-details">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
+        </div>
+        <button class="file-remove" id="fileRemove" title="移除文件">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
 
-    <div class="progress-section" id="progressSection">
-      <div class="progress-label">
-        <span class="progress-status" id="progressStatus">正在上传</span>
-        <span class="progress-pct" id="progressPct">0%</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-    </div>
+      <button class="submit-btn" id="submitBtn">开始转录</button>
 
-    <div class="processing-section" id="processingSection">
-      <div class="processing-wave">
-        <span></span><span></span><span></span>
-        <span></span><span></span><span></span>
-        <span></span><span></span><span></span>
-      </div>
-      <p class="processing-text" id="processingText">正在处理中，请稍候</p>
-      <div class="processing-steps">
-        <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
-        <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
-        <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
-      </div>
-      <div class="processing-logs" id="processingLogs"></div>
-    </div>
-
-    <div class="result-section" id="resultSection">
-      <div class="result-card">
-        <div class="result-badge">转录完成</div>
-        <p class="result-title">您的中文播客音频已准备就绪</p>
-        <div class="result-actions">
-          <a class="btn-player" id="goPlayerResultBtn" href="/player">
-            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            前往播放
-          </a>
-          <button class="btn-reset" id="resetBtn">
-            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
-            继续上传
-          </button>
+      <div class="progress-section" id="progressSection">
+        <div class="progress-label">
+          <span class="progress-status" id="progressStatus">正在上传</span>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
         </div>
       </div>
+
+      <div class="processing-section" id="processingSection">
+        <div class="processing-wave">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <p class="processing-text" id="processingText">正在处理中，请稍候</p>
+        <div class="processing-steps">
+          <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
+          <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
+          <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
+        </div>
+        <div class="processing-logs" id="processingLogs"></div>
+      </div>
+
+      <div class="result-section" id="resultSection">
+        <div class="result-card">
+          <div class="result-badge">转录完成</div>
+          <p class="result-title">您的中文播客音频已准备就绪</p>
+          <div class="result-actions">
+            <a class="btn-player" id="goPlayerResultBtn" href="/player">
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              前往播放
+            </a>
+            <button class="btn-reset" id="resetBtn">
+              <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
+              继续上传
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
     </div>
-
-    <div class="error-msg" id="errorMsg"></div>
   </div>
-</main>
-
-<footer class="footer">播刻 Podcast Transcribe</footer>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
 
-// ── Auth state ──
 let currentUser = null;
 let isLoginMode = true;
 
-const authSection = $('authSection');
+const authPage = $('authPage');
 const authTitle = $('authTitle');
 const authUsername = $('authUsername');
 const authPassword = $('authPassword');
@@ -853,11 +928,27 @@ const authSubmit = $('authSubmit');
 const authError = $('authError');
 const authToggleText = $('authToggleText');
 const authToggleLink = $('authToggleLink');
-const userBar = $('userBar');
-const userBarName = $('userBarName');
-const goPlayerBtn = $('goPlayerBtn');
-const logoutBtn = $('logoutBtn');
-const uploadSection = $('uploadSection');
+const topBar = $('topBar');
+const pageLayout = $('pageLayout');
+const sidebarList = $('sidebarList');
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'Z');
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+  if (diff < 604800) return Math.floor(diff / 86400) + ' 天前';
+  return d.toLocaleDateString('zh-CN');
+}
 
 function showAuthError(msg) {
   authError.textContent = msg;
@@ -882,13 +973,9 @@ authToggleLink.addEventListener('click', () => setAuthMode(!isLoginMode));
 authSubmit.addEventListener('click', async () => {
   const username = authUsername.value.trim();
   const password = authPassword.value;
-  if (!username || !password) {
-    showAuthError('请填写用户名和密码');
-    return;
-  }
+  if (!username || !password) { showAuthError('请填写用户名和密码'); return; }
   hideAuthError();
   authSubmit.disabled = true;
-
   try {
     const url = isLoginMode ? '/api/login' : '/api/register';
     const resp = await fetch(url, {
@@ -897,59 +984,60 @@ authSubmit.addEventListener('click', async () => {
       body: JSON.stringify({ username, password }),
     });
     const data = await resp.json();
-    if (!resp.ok) {
-      showAuthError(data.error || '操作失败');
-      return;
-    }
+    if (!resp.ok) { showAuthError(data.error || '操作失败'); return; }
     currentUser = data.username;
     enterLoggedIn(data.username);
-  } catch {
-    showAuthError('网络错误');
-  } finally {
-    authSubmit.disabled = false;
-  }
+  } catch { showAuthError('网络错误'); }
+  finally { authSubmit.disabled = false; }
 });
 
-authPassword.addEventListener('keydown', e => {
-  if (e.key === 'Enter') authSubmit.click();
-});
+authPassword.addEventListener('keydown', e => { if (e.key === 'Enter') authSubmit.click(); });
 
-logoutBtn.addEventListener('click', async () => {
+$('logoutBtn').addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   currentUser = null;
   enterLoggedOut();
 });
 
 function enterLoggedIn(username) {
-  authSection.classList.remove('visible');
-  userBarName.textContent = username;
-  userBar.classList.add('visible');
-  uploadSection.style.display = '';
-  checkLastPlayed();
+  authPage.classList.remove('visible');
+  $('topBarUser').textContent = username;
+  topBar.style.display = '';
+  pageLayout.classList.add('visible');
+  loadPodcastList();
 }
 
 function enterLoggedOut() {
-  userBar.classList.remove('visible');
-  uploadSection.style.display = 'none';
-  goPlayerBtn.style.display = 'none';
+  topBar.style.display = 'none';
+  pageLayout.classList.remove('visible');
   authUsername.value = '';
   authPassword.value = '';
   hideAuthError();
   setAuthMode(true);
-  authSection.classList.add('visible');
+  authPage.classList.add('visible');
 }
 
-async function checkLastPlayed() {
+async function loadPodcastList() {
   try {
-    const resp = await fetch('/api/me');
-    const data = await resp.json();
-    if (data.last_played) {
-      goPlayerBtn.style.display = '';
+    const resp = await fetch('/api/podcasts');
+    if (!resp.ok) return;
+    const podcasts = await resp.json();
+    sidebarList.innerHTML = '';
+    if (podcasts.length === 0) {
+      sidebarList.innerHTML = '<div class="sidebar-empty">暂无翻译记录</div>';
+      return;
     }
+    podcasts.forEach(p => {
+      const a = document.createElement('a');
+      a.className = 'sidebar-item';
+      a.href = '/player?id=' + p.id;
+      const dateStr = p.last_played_at || p.created_at;
+      a.innerHTML = escapeHtml(p.title) + `<span class="sidebar-item-meta">${formatDate(dateStr)}</span>`;
+      sidebarList.appendChild(a);
+    });
   } catch {}
 }
 
-// Check login state on load
 async function initAuth() {
   try {
     const resp = await fetch('/api/me');
@@ -957,12 +1045,8 @@ async function initAuth() {
       const data = await resp.json();
       currentUser = data.username;
       enterLoggedIn(data.username);
-    } else {
-      enterLoggedOut();
-    }
-  } catch {
-    enterLoggedOut();
-  }
+    } else { enterLoggedOut(); }
+  } catch { enterLoggedOut(); }
 }
 
 // ── Upload logic ──
@@ -986,7 +1070,6 @@ const errorMsg = $('errorMsg');
 
 let selectedFile = null;
 let lastTaskId = null;
-
 const stepMap = { asr: 'step1', translate: 'step2', tts: 'step3' };
 
 function formatSize(bytes) {
@@ -1019,15 +1102,8 @@ dropzone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', e => selectFile(e.target.files[0]));
 fileRemove.addEventListener('click', e => { e.stopPropagation(); clearFile(); });
 
-dropzone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropzone.classList.add('drag-over');
-});
-
-dropzone.addEventListener('dragleave', () => {
-  dropzone.classList.remove('drag-over');
-});
-
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('drag-over'); });
 dropzone.addEventListener('drop', e => {
   e.preventDefault();
   dropzone.classList.remove('drag-over');
@@ -1035,37 +1111,12 @@ dropzone.addEventListener('drop', e => {
   if (file && file.type.startsWith('audio/')) selectFile(file);
 });
 
-function showError(msg) {
-  errorMsg.textContent = msg;
-  errorMsg.classList.add('visible');
-  errorMsg.style.display = 'block';
-}
-function hideError() {
-  errorMsg.classList.remove('visible');
-  errorMsg.style.display = '';
-}
+function showError(msg) { errorMsg.textContent = msg; errorMsg.classList.add('visible'); errorMsg.style.display = 'block'; }
+function hideError() { errorMsg.classList.remove('visible'); errorMsg.style.display = ''; }
 
-function activateStep(step) {
-  const el = $(stepMap[step]);
-  if (el) {
-    el.classList.remove('done');
-    el.classList.add('active');
-  }
-}
-
-function completeStep(step) {
-  const el = $(stepMap[step]);
-  if (el) {
-    el.classList.remove('active');
-    el.classList.add('done');
-  }
-}
-
-function resetSteps() {
-  [$('step1'), $('step2'), $('step3')].forEach(s => {
-    s.classList.remove('active', 'done');
-  });
-}
+function activateStep(step) { const el = $(stepMap[step]); if (el) { el.classList.remove('done'); el.classList.add('active'); } }
+function completeStep(step) { const el = $(stepMap[step]); if (el) { el.classList.remove('active'); el.classList.add('done'); } }
+function resetSteps() { [$('step1'), $('step2'), $('step3')].forEach(s => s.classList.remove('active', 'done')); }
 
 function addLog(message) {
   const entry = document.createElement('div');
@@ -1075,18 +1126,14 @@ function addLog(message) {
   processingLogs.scrollTop = processingLogs.scrollHeight;
 }
 
-function clearLogs() {
-  processingLogs.innerHTML = '';
-}
+function clearLogs() { processingLogs.innerHTML = ''; }
 
 submitBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
   hideError();
-
   dropzone.style.display = 'none';
   hide(fileInfo);
   hide(submitBtn);
-
   show(progressSection);
   progressSection.style.display = 'block';
 
@@ -1097,7 +1144,6 @@ submitBtn.addEventListener('click', async () => {
     const taskId = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.responseType = 'json';
-
       xhr.upload.addEventListener('progress', e => {
         if (e.lengthComputable) {
           const pct = Math.round((e.loaded / e.total) * 100);
@@ -1106,24 +1152,17 @@ submitBtn.addEventListener('click', async () => {
           if (pct >= 100) progressStatus.textContent = '上传完成';
         }
       });
-
       xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.response.task_id);
-        } else {
-          reject(new Error(xhr.response?.error || `上传失败 (${xhr.status})`));
-        }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response.task_id);
+        else reject(new Error(xhr.response?.error || `上传失败 (${xhr.status})`));
       });
-
       xhr.addEventListener('error', () => reject(new Error('网络连接失败')));
       xhr.addEventListener('abort', () => reject(new Error('上传被取消')));
-
       xhr.open('POST', '/upload');
       xhr.send(formData);
     });
 
     lastTaskId = taskId;
-
     await new Promise(r => setTimeout(r, 400));
     hide(progressSection);
     progressSection.style.display = '';
@@ -1135,62 +1174,26 @@ submitBtn.addEventListener('click', async () => {
     await new Promise((resolve, reject) => {
       const evtSource = new EventSource('/progress/' + taskId);
       let settled = false;
-
-      const settle = (fn, val) => {
-        if (settled) return;
-        settled = true;
-        evtSource.close();
-        fn(val);
-      };
-
-      evtSource.addEventListener('step_start', e => {
-        const { step, message } = JSON.parse(e.data);
-        activateStep(step);
-        if (message) {
-          processingText.textContent = message;
-          addLog(message);
-        }
-      });
-
-      evtSource.addEventListener('step_done', e => {
-        const { step } = JSON.parse(e.data);
-        completeStep(step);
-      });
-
-      evtSource.addEventListener('log', e => {
-        const { message } = JSON.parse(e.data);
-        addLog(message);
-      });
-
-      evtSource.addEventListener('done', e => {
-        settle(resolve, JSON.parse(e.data).task_id);
-      });
-
-      evtSource.addEventListener('task_error', e => {
-        settle(reject, new Error(JSON.parse(e.data).message || '处理失败'));
-      });
-
-      evtSource.onerror = () => {
-        settle(reject, new Error('处理过程中连接中断'));
-      };
+      const settle = (fn, val) => { if (settled) return; settled = true; evtSource.close(); fn(val); };
+      evtSource.addEventListener('step_start', e => { const { step, message } = JSON.parse(e.data); activateStep(step); if (message) { processingText.textContent = message; addLog(message); } });
+      evtSource.addEventListener('step_done', e => { completeStep(JSON.parse(e.data).step); });
+      evtSource.addEventListener('log', e => { addLog(JSON.parse(e.data).message); });
+      evtSource.addEventListener('done', e => { settle(resolve, JSON.parse(e.data).task_id); });
+      evtSource.addEventListener('task_error', e => { settle(reject, new Error(JSON.parse(e.data).message || '处理失败')); });
+      evtSource.onerror = () => { settle(reject, new Error('处理过程中连接中断')); };
     });
 
-    // Show result with link to player
     hide(processingSection);
     processingSection.style.display = '';
-
     $('goPlayerResultBtn').href = '/player?id=' + lastTaskId;
-
     show(resultSection);
     resultSection.style.display = 'block';
+    loadPodcastList();
 
   } catch (err) {
-    hide(progressSection);
-    progressSection.style.display = '';
-    hide(processingSection);
-    processingSection.style.display = '';
-    resetSteps();
-    resetUI();
+    hide(progressSection); progressSection.style.display = '';
+    hide(processingSection); processingSection.style.display = '';
+    resetSteps(); resetUI();
     showError(err.message || '处理失败，请重试');
   }
 });
@@ -1200,18 +1203,14 @@ function resetUI() {
   progressPct.textContent = '0%';
   progressStatus.textContent = '正在上传';
   dropzone.style.display = '';
-  clearFile();
-  resetSteps();
-  clearLogs();
+  clearFile(); resetSteps(); clearLogs();
 }
 
 resetBtn.addEventListener('click', () => {
-  hide(resultSection);
-  resultSection.style.display = '';
+  hide(resultSection); resultSection.style.display = '';
   resetUI();
 });
 
-// Init
 initAuth();
 </script>
 
