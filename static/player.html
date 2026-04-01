@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>播刻 — 播放</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300&family=Noto+Serif+SC:wght@300;500;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ink: #1a1714;
+  --paper: #f5f0e8;
+  --paper-deep: #ebe4d8;
+  --vermillion: #c73e1d;
+  --vermillion-soft: rgba(199, 62, 29, 0.12);
+  --stone: #8a8279;
+  --stone-light: #b5aea5;
+  --shadow: rgba(26, 23, 20, 0.06);
+  --font-display: 'Cormorant Garamond', serif;
+  --font-cn: 'Noto Serif SC', serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html { font-size: 16px; }
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-cn);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* ── Top bar ── */
+.top-bar {
+  width: 100%;
+  max-width: 640px;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  opacity: 0;
+  animation: fadeDown 0.6s ease 0.1s forwards;
+}
+
+.top-bar-brand {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.top-bar-brand:hover { opacity: 0.7; }
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.top-bar-user {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone);
+}
+
+.top-bar-right a,
+.top-bar-right button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.top-bar-right a:hover,
+.top-bar-right button:hover { color: var(--vermillion); }
+
+/* ── Main player area ── */
+.player-container {
+  width: 100%;
+  max-width: 640px;
+  padding: 0 1.5rem 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.2s forwards;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.empty-state.visible { display: flex; }
+
+.empty-text {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 1rem;
+  color: var(--stone);
+  line-height: 1.8;
+}
+
+.empty-text a {
+  color: var(--vermillion);
+  text-decoration: none;
+}
+
+.empty-text a:hover { text-decoration: underline; }
+
+/* ── Now playing ── */
+.now-playing {
+  display: none;
+}
+
+.now-playing.visible { display: block; }
+
+.podcast-title {
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--paper);
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+audio {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  outline: none;
+  filter: invert(1) hue-rotate(180deg) brightness(0.85);
+}
+
+/* ── Subtitle area ── */
+.subtitle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.subtitle-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--stone);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.btn-en-toggle {
+  padding: 0.3rem 0.7rem;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid rgba(245, 240, 232, 0.2);
+  background: transparent;
+  color: var(--stone);
+}
+
+.btn-en-toggle.active {
+  background: var(--vermillion);
+  border-color: var(--vermillion);
+  color: var(--paper);
+}
+
+.subtitle-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.subtitle-wrapper::before,
+.subtitle-wrapper::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.subtitle-wrapper::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--ink), transparent);
+}
+
+.subtitle-wrapper::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--ink), transparent);
+}
+
+.subtitle-container {
+  height: calc(100vh - 320px);
+  min-height: 200px;
+  overflow-y: auto;
+  padding: 1.2rem 0;
+  position: relative;
+}
+
+.subtitle-container::-webkit-scrollbar { width: 3px; }
+.subtitle-container::-webkit-scrollbar-track { background: transparent; }
+.subtitle-container::-webkit-scrollbar-thumb {
+  background: rgba(245, 240, 232, 0.15);
+  border-radius: 2px;
+}
+
+.subtitle-entry {
+  padding: 0.55rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.3;
+  border-left: 2px solid transparent;
+}
+
+.subtitle-entry:hover {
+  opacity: 0.55;
+  background: rgba(245, 240, 232, 0.04);
+}
+
+.subtitle-entry.active {
+  opacity: 1;
+  background: rgba(245, 240, 232, 0.07);
+  border-left-color: var(--vermillion);
+}
+
+.subtitle-entry.past {
+  opacity: 0.5;
+}
+
+.subtitle-speaker {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--vermillion);
+  opacity: 0.7;
+  margin-bottom: 0.15rem;
+  letter-spacing: 0.05em;
+}
+
+.subtitle-chinese {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 0.92rem;
+  color: var(--paper);
+  line-height: 1.75;
+}
+
+.subtitle-english {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--stone);
+  line-height: 1.5;
+  margin-top: 0.2rem;
+}
+
+.subtitle-container.hide-english .subtitle-english {
+  display: none;
+}
+
+/* ── History section ── */
+.history-section {
+  margin-top: 1.8rem;
+  border-top: 1px solid rgba(245, 240, 232, 0.08);
+  padding-top: 1.2rem;
+}
+
+.history-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--stone);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  color: var(--paper);
+  width: 100%;
+  text-align: left;
+}
+
+.history-item:hover {
+  background: rgba(245, 240, 232, 0.06);
+}
+
+.history-item.active {
+  background: rgba(199, 62, 29, 0.12);
+}
+
+.history-item-title {
+  font-family: var(--font-cn);
+  font-weight: 300;
+  font-size: 0.88rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item-meta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--stone);
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+/* ── Download bar ── */
+.action-bar {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.btn-action {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(245, 240, 232, 0.15);
+  background: transparent;
+  color: var(--stone);
+}
+
+.btn-action:hover {
+  background: rgba(245, 240, 232, 0.08);
+  color: var(--paper);
+}
+
+.btn-action svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+/* ── Animations ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 540px) {
+  .top-bar { padding: 1rem 1rem; }
+  .player-container { padding: 0 1rem 2rem; }
+  .subtitle-container { height: calc(100vh - 360px); }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-bar">
+  <a href="/" class="top-bar-brand">播刻</a>
+  <div class="top-bar-right">
+    <span class="top-bar-user" id="topBarUser"></span>
+    <a href="/">上传新播客</a>
+    <button id="logoutBtn">退出</button>
+  </div>
+</nav>
+
+<main class="player-container">
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-text">
+      还没有播客记录<br>
+      <a href="/">上传一个播客开始收听</a>
+    </div>
+  </div>
+
+  <!-- Now playing -->
+  <div class="now-playing" id="nowPlaying">
+    <h2 class="podcast-title" id="podcastTitle"></h2>
+    <audio controls id="audioPlayer"></audio>
+
+    <div class="action-bar">
+      <a class="btn-action" id="downloadBtn" download="podcast_chinese.mp3">
+        <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        下载
+      </a>
+    </div>
+
+    <div class="subtitle-header">
+      <span class="subtitle-label">字幕</span>
+      <button class="btn-en-toggle active" id="enToggleBtn">EN</button>
+    </div>
+    <div class="subtitle-wrapper">
+      <div class="subtitle-container" id="subtitleContainer"></div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="historySection" style="display:none">
+      <div class="history-title">播放历史</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const audioPlayer = $('audioPlayer');
+const subtitleContainer = $('subtitleContainer');
+const enToggleBtn = $('enToggleBtn');
+const podcastTitle = $('podcastTitle');
+const downloadBtn = $('downloadBtn');
+const nowPlaying = $('nowPlaying');
+const emptyState = $('emptyState');
+const historySection = $('historySection');
+const historyList = $('historyList');
+
+let subtitleData = null;
+let currentSubIdx = -1;
+let showEnglish = true;
+let currentPodcastId = null;
+let saveTimer = null;
+
+// ── Auth check ──
+async function checkAuth() {
+  try {
+    const resp = await fetch('/api/me');
+    if (!resp.ok) {
+      window.location.href = '/';
+      return null;
+    }
+    const data = await resp.json();
+    $('topBarUser').textContent = data.username;
+    return data;
+  } catch {
+    window.location.href = '/';
+    return null;
+  }
+}
+
+$('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/';
+});
+
+// ── Subtitle logic ──
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function renderSubtitles() {
+  subtitleContainer.innerHTML = '';
+  if (!subtitleData || !subtitleData.subtitles || !subtitleData.subtitles.length) return;
+
+  subtitleData.subtitles.forEach((sub, i) => {
+    const el = document.createElement('div');
+    el.className = 'subtitle-entry';
+    el.dataset.index = i;
+
+    let html = '';
+    if (sub.speaker) {
+      html += `<div class="subtitle-speaker">Speaker ${sub.speaker}</div>`;
+    }
+    html += `<div class="subtitle-chinese">${escapeHtml(sub.chinese)}</div>`;
+    if (sub.english) {
+      html += `<div class="subtitle-english">${escapeHtml(sub.english)}</div>`;
+    }
+    el.innerHTML = html;
+
+    el.addEventListener('click', () => {
+      audioPlayer.currentTime = sub.start;
+      audioPlayer.play();
+    });
+
+    subtitleContainer.appendChild(el);
+  });
+
+  currentSubIdx = -1;
+}
+
+function syncSubtitle() {
+  if (!subtitleData || !subtitleData.subtitles || !subtitleData.subtitles.length) return;
+
+  const t = audioPlayer.currentTime;
+  const subs = subtitleData.subtitles;
+
+  let lo = 0, hi = subs.length - 1, idx = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (t < subs[mid].start) {
+      hi = mid - 1;
+    } else if (t >= subs[mid].end) {
+      lo = mid + 1;
+    } else {
+      idx = mid;
+      break;
+    }
+  }
+
+  if (idx === currentSubIdx) return;
+  currentSubIdx = idx;
+
+  const entries = subtitleContainer.querySelectorAll('.subtitle-entry');
+  entries.forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+    el.classList.toggle('past', idx >= 0 && i < idx);
+  });
+
+  if (idx >= 0 && entries[idx]) {
+    const entry = entries[idx];
+    const containerRect = subtitleContainer.getBoundingClientRect();
+    const entryRect = entry.getBoundingClientRect();
+    const offset = entryRect.top - containerRect.top - containerRect.height / 2 + entryRect.height / 2;
+    subtitleContainer.scrollBy({ top: offset, behavior: 'smooth' });
+  }
+}
+
+audioPlayer.addEventListener('timeupdate', syncSubtitle);
+
+enToggleBtn.addEventListener('click', () => {
+  showEnglish = !showEnglish;
+  enToggleBtn.classList.toggle('active', showEnglish);
+  subtitleContainer.classList.toggle('hide-english', !showEnglish);
+});
+
+// ── Progress saving ──
+function startSavingProgress() {
+  stopSavingProgress();
+  saveTimer = setInterval(() => {
+    if (currentPodcastId && audioPlayer.currentTime > 0) {
+      fetch(`/api/progress/${currentPodcastId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position: audioPlayer.currentTime }),
+      }).catch(() => {});
+    }
+  }, 5000);
+}
+
+function stopSavingProgress() {
+  if (saveTimer) {
+    clearInterval(saveTimer);
+    saveTimer = null;
+  }
+}
+
+// Save progress on pause and before leaving
+audioPlayer.addEventListener('pause', () => {
+  if (currentPodcastId && audioPlayer.currentTime > 0) {
+    fetch(`/api/progress/${currentPodcastId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ position: audioPlayer.currentTime }),
+    }).catch(() => {});
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  if (currentPodcastId && audioPlayer.currentTime > 0) {
+    navigator.sendBeacon(
+      `/api/progress/${currentPodcastId}`,
+      new Blob([JSON.stringify({ position: audioPlayer.currentTime })], { type: 'application/json' })
+    );
+  }
+});
+
+audioPlayer.addEventListener('play', startSavingProgress);
+audioPlayer.addEventListener('pause', stopSavingProgress);
+audioPlayer.addEventListener('ended', stopSavingProgress);
+
+// ── Load podcast ──
+async function loadPodcast(podcastId, resumePosition) {
+  currentPodcastId = podcastId;
+  subtitleData = null;
+  currentSubIdx = -1;
+  subtitleContainer.innerHTML = '';
+
+  // Set audio source
+  audioPlayer.src = `/podcast/${podcastId}/audio`;
+  downloadBtn.href = `/podcast/${podcastId}/audio`;
+
+  // Load subtitles
+  try {
+    const resp = await fetch(`/podcast/${podcastId}/subtitles`);
+    if (resp.ok) {
+      subtitleData = await resp.json();
+      renderSubtitles();
+    }
+  } catch {}
+
+  // Get saved progress if not provided
+  if (resumePosition === undefined) {
+    try {
+      const resp = await fetch(`/api/progress/${podcastId}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        resumePosition = data.position || 0;
+      }
+    } catch {}
+  }
+
+  // Resume position when audio is ready
+  if (resumePosition > 0) {
+    audioPlayer.addEventListener('loadedmetadata', function onMeta() {
+      audioPlayer.removeEventListener('loadedmetadata', onMeta);
+      audioPlayer.currentTime = resumePosition;
+    });
+  }
+
+  // Update history active state
+  historyList.querySelectorAll('.history-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === podcastId);
+  });
+
+  emptyState.classList.remove('visible');
+  nowPlaying.classList.add('visible');
+}
+
+// ── History ──
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'Z');
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+  if (diff < 604800) return Math.floor(diff / 86400) + ' 天前';
+  return d.toLocaleDateString('zh-CN');
+}
+
+async function loadHistory() {
+  try {
+    const resp = await fetch('/api/podcasts');
+    if (!resp.ok) return [];
+    const podcasts = await resp.json();
+
+    if (podcasts.length === 0) {
+      historySection.style.display = 'none';
+      return podcasts;
+    }
+
+    historySection.style.display = '';
+    historyList.innerHTML = '';
+
+    podcasts.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'history-item';
+      btn.dataset.id = p.id;
+      if (p.id === currentPodcastId) btn.classList.add('active');
+
+      const dateStr = p.last_played_at || p.created_at;
+      btn.innerHTML = `
+        <span class="history-item-title">${escapeHtml(p.title)}</span>
+        <span class="history-item-meta">${formatDate(dateStr)}</span>
+      `;
+
+      btn.addEventListener('click', () => {
+        podcastTitle.textContent = p.title;
+        loadPodcast(p.id);
+        // Update active state
+        historyList.querySelectorAll('.history-item').forEach(el => {
+          el.classList.toggle('active', el.dataset.id === p.id);
+        });
+      });
+
+      historyList.appendChild(btn);
+    });
+
+    return podcasts;
+  } catch {
+    return [];
+  }
+}
+
+// ── Init ──
+async function init() {
+  const userData = await checkAuth();
+  if (!userData) return;
+
+  const podcasts = await loadHistory();
+
+  // Determine which podcast to play
+  const params = new URLSearchParams(window.location.search);
+  const requestedId = params.get('id');
+
+  if (requestedId) {
+    // Play specific podcast (e.g., after processing)
+    const podcast = podcasts.find(p => p.id === requestedId);
+    podcastTitle.textContent = podcast ? podcast.title : '播客';
+    await loadPodcast(requestedId, 0);
+  } else if (userData.last_played) {
+    // Resume last played
+    podcastTitle.textContent = userData.last_played.title;
+    await loadPodcast(userData.last_played.podcast_id, userData.last_played.position);
+  } else if (podcasts.length > 0) {
+    // Play most recent
+    podcastTitle.textContent = podcasts[0].title;
+    await loadPodcast(podcasts[0].id);
+  } else {
+    // No podcasts
+    emptyState.classList.add('visible');
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

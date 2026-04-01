@@ -38,7 +38,6 @@ body {
   position: relative;
 }
 
-/* subtle paper grain texture */
 body::before {
   content: '';
   position: fixed;
@@ -75,7 +74,6 @@ body::before {
   letter-spacing: 0.15em;
 }
 
-/* Main container */
 .container {
   width: 100%;
   max-width: 520px;
@@ -87,7 +85,154 @@ body::before {
   animation: fadeUp 0.8s ease 0.4s forwards;
 }
 
-/* Drop zone */
+/* ── User bar ── */
+.user-bar {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--paper-deep);
+  border-radius: 8px;
+}
+
+.user-bar.visible { display: flex; }
+
+.user-bar-name {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.user-bar-actions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.user-bar-actions a,
+.user-bar-actions button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.user-bar-actions a:hover,
+.user-bar-actions button:hover {
+  color: var(--vermillion);
+}
+
+/* ── Auth form ── */
+.auth-section {
+  display: none;
+}
+
+.auth-section.visible {
+  display: block;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.auth-card {
+  background: var(--paper-deep);
+  border-radius: 12px;
+  padding: 2.2rem 2rem;
+}
+
+.auth-title {
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 1.6rem;
+  color: var(--ink);
+}
+
+.auth-field {
+  margin-bottom: 1rem;
+}
+
+.auth-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stone);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--stone-light);
+  border-radius: 8px;
+  background: var(--paper);
+  font-family: var(--font-cn);
+  font-size: 0.9rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.auth-field input:focus {
+  border-color: var(--vermillion);
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-cn);
+  font-weight: 500;
+  font-size: 0.92rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-submit:hover {
+  background: #2d2924;
+  transform: translateY(-1px);
+}
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--stone);
+}
+
+.auth-toggle a {
+  color: var(--vermillion);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-toggle a:hover { text-decoration: underline; }
+
+.auth-error {
+  display: none;
+  margin-top: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--vermillion-soft);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--vermillion);
+}
+
+.auth-error.visible { display: block; }
+
+/* ── Drop zone ── */
 .dropzone {
   position: relative;
   border: 1.5px dashed var(--stone-light);
@@ -153,7 +298,6 @@ body::before {
 
 input[type="file"] { display: none; }
 
-/* File selected state */
 .file-info {
   display: none;
   margin-top: 1.5rem;
@@ -234,7 +378,6 @@ input[type="file"] { display: none; }
   stroke-width: 1.8;
 }
 
-/* Submit button */
 .submit-btn {
   display: none;
   width: 100%;
@@ -273,7 +416,6 @@ input[type="file"] { display: none; }
   transform: none;
 }
 
-/* Progress section */
 .progress-section {
   display: none;
   margin-top: 1.5rem;
@@ -320,7 +462,6 @@ input[type="file"] { display: none; }
   transition: width 0.3s ease;
 }
 
-/* Processing animation */
 .processing-section {
   display: none;
   margin-top: 2rem;
@@ -404,7 +545,6 @@ input[type="file"] { display: none; }
 
 .step.done .step-dot { background: var(--stone); }
 
-/* Processing logs */
 .processing-logs {
   margin-top: 1.2rem;
   max-height: 140px;
@@ -423,7 +563,7 @@ input[type="file"] { display: none; }
   animation: fadeUp 0.3s ease forwards;
 }
 
-/* Result section */
+/* ── Result section (in-session preview) ── */
 .result-section {
   display: none;
   margin-top: 1.5rem;
@@ -439,6 +579,7 @@ input[type="file"] { display: none; }
   border-radius: 12px;
   padding: 1.8rem;
   color: var(--paper);
+  text-align: center;
 }
 
 .result-badge {
@@ -469,151 +610,13 @@ input[type="file"] { display: none; }
   line-height: 1.5;
 }
 
-audio {
-  width: 100%;
-  height: 40px;
-  border-radius: 8px;
-  outline: none;
-  filter: invert(1) hue-rotate(180deg) brightness(0.85);
-}
-
-/* Subtitle area */
-.subtitle-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.subtitle-label {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--stone);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.btn-en-toggle {
-  padding: 0.3rem 0.7rem;
-  border-radius: 5px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  border: 1px solid rgba(245, 240, 232, 0.2);
-  background: transparent;
-  color: var(--stone);
-}
-
-.btn-en-toggle.active {
-  background: var(--vermillion);
-  border-color: var(--vermillion);
-  color: var(--paper);
-}
-
-.subtitle-wrapper {
-  position: relative;
-}
-
-.subtitle-wrapper::before,
-.subtitle-wrapper::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 28px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.subtitle-wrapper::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--ink), transparent);
-}
-
-.subtitle-wrapper::after {
-  bottom: 0;
-  background: linear-gradient(to top, var(--ink), transparent);
-}
-
-.subtitle-container {
-  max-height: 340px;
-  overflow-y: auto;
-  padding: 1.2rem 0;
-  position: relative;
-}
-
-.subtitle-container::-webkit-scrollbar { width: 3px; }
-.subtitle-container::-webkit-scrollbar-track { background: transparent; }
-.subtitle-container::-webkit-scrollbar-thumb {
-  background: rgba(245, 240, 232, 0.15);
-  border-radius: 2px;
-}
-
-.subtitle-entry {
-  padding: 0.55rem 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  opacity: 0.3;
-  border-left: 2px solid transparent;
-}
-
-.subtitle-entry:hover {
-  opacity: 0.55;
-  background: rgba(245, 240, 232, 0.04);
-}
-
-.subtitle-entry.active {
-  opacity: 1;
-  background: rgba(245, 240, 232, 0.07);
-  border-left-color: var(--vermillion);
-}
-
-.subtitle-entry.past {
-  opacity: 0.5;
-}
-
-.subtitle-chinese {
-  font-family: var(--font-cn);
-  font-weight: 300;
-  font-size: 0.92rem;
-  color: var(--paper);
-  line-height: 1.75;
-}
-
-.subtitle-english {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--stone);
-  line-height: 1.5;
-  margin-top: 0.2rem;
-}
-
-.subtitle-container.hide-english .subtitle-english {
-  display: none;
-}
-
-.subtitle-speaker {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--vermillion);
-  opacity: 0.7;
-  margin-bottom: 0.15rem;
-  letter-spacing: 0.05em;
-}
-
-/* Result actions */
 .result-actions {
   display: flex;
   gap: 0.8rem;
   margin-top: 1.4rem;
 }
 
-.btn-download, .btn-reset {
+.btn-player, .btn-reset {
   flex: 1;
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -632,12 +635,12 @@ audio {
   border: none;
 }
 
-.btn-download {
+.btn-player {
   background: var(--vermillion);
   color: var(--paper);
 }
 
-.btn-download:hover { background: #d4492a; }
+.btn-player:hover { background: #d4492a; }
 
 .btn-reset {
   background: rgba(245, 240, 232, 0.1);
@@ -647,7 +650,7 @@ audio {
 
 .btn-reset:hover { background: rgba(245, 240, 232, 0.18); }
 
-.btn-download svg, .btn-reset svg {
+.btn-player svg, .btn-reset svg {
   width: 15px;
   height: 15px;
   stroke: currentColor;
@@ -655,7 +658,6 @@ audio {
   stroke-width: 1.8;
 }
 
-/* Error */
 .error-msg {
   display: none;
   margin-top: 1.2rem;
@@ -674,7 +676,6 @@ audio {
   animation: shake 0.4s ease;
 }
 
-/* Footer */
 .footer {
   margin-top: auto;
   padding: 3rem 0 2rem;
@@ -686,7 +687,6 @@ audio {
   z-index: 1;
 }
 
-/* Animations */
 @keyframes fadeDown {
   from { opacity: 0; transform: translateY(-12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -715,13 +715,11 @@ audio {
   80% { transform: translateX(4px); }
 }
 
-/* Responsive */
 @media (max-width: 540px) {
   .header { margin-top: 3rem; }
   .header h1 { font-size: 2.2rem; }
   .container { margin-top: 2.5rem; }
   .dropzone { padding: 2.5rem 1.5rem; }
-  .subtitle-container { max-height: 260px; }
 }
 </style>
 </head>
@@ -733,93 +731,109 @@ audio {
 </header>
 
 <main class="container">
-  <!-- Upload -->
-  <div class="dropzone" id="dropzone">
-    <div class="dropzone-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
-    </div>
-    <p class="dropzone-text">
-      <strong>拖放音频文件</strong>至此处<br>或点击选择文件
-    </p>
-    <p class="dropzone-hint">MP3 / WAV / M4A</p>
-  </div>
-  <input type="file" id="fileInput" accept="audio/*">
 
-  <!-- File info -->
-  <div class="file-info" id="fileInfo">
-    <div class="file-icon">
-      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-    </div>
-    <div class="file-details">
-      <div class="file-name" id="fileName"></div>
-      <div class="file-size" id="fileSize"></div>
-    </div>
-    <button class="file-remove" id="fileRemove" title="移除文件">
-      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-  </div>
-
-  <!-- Submit -->
-  <button class="submit-btn" id="submitBtn">开始转录</button>
-
-  <!-- Upload progress -->
-  <div class="progress-section" id="progressSection">
-    <div class="progress-label">
-      <span class="progress-status" id="progressStatus">正在上传</span>
-      <span class="progress-pct" id="progressPct">0%</span>
-    </div>
-    <div class="progress-track">
-      <div class="progress-bar" id="progressBar"></div>
+  <!-- User bar (shown when logged in) -->
+  <div class="user-bar" id="userBar">
+    <span class="user-bar-name" id="userBarName"></span>
+    <div class="user-bar-actions">
+      <a href="/player" id="goPlayerBtn" style="display:none">继续收听</a>
+      <button id="logoutBtn">退出</button>
     </div>
   </div>
 
-  <!-- Processing -->
-  <div class="processing-section" id="processingSection">
-    <div class="processing-wave">
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-    </div>
-    <p class="processing-text" id="processingText">正在处理中，请稍候</p>
-    <div class="processing-steps">
-      <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
-      <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
-      <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
-    </div>
-    <div class="processing-logs" id="processingLogs"></div>
-  </div>
-
-  <!-- Result -->
-  <div class="result-section" id="resultSection">
-    <div class="result-card">
-      <div class="result-badge">转录完成</div>
-      <p class="result-title">您的中文播客音频已准备就绪</p>
-      <audio controls id="audioPlayer"></audio>
-
-      <!-- Subtitles -->
-      <div class="subtitle-header" id="subtitleHeader" style="display:none">
-        <span class="subtitle-label">字幕</span>
-        <button class="btn-en-toggle active" id="enToggleBtn">EN</button>
+  <!-- Auth (shown when not logged in) -->
+  <div class="auth-section" id="authSection">
+    <div class="auth-card">
+      <div class="auth-title" id="authTitle">登录</div>
+      <div class="auth-field">
+        <label for="authUsername">用户名</label>
+        <input type="text" id="authUsername" autocomplete="username">
       </div>
-      <div class="subtitle-wrapper" id="subtitleWrapper" style="display:none">
-        <div class="subtitle-container" id="subtitleContainer"></div>
+      <div class="auth-field">
+        <label for="authPassword">密码</label>
+        <input type="password" id="authPassword" autocomplete="current-password">
       </div>
-
-      <div class="result-actions">
-        <a class="btn-download" id="downloadBtn" download="podcast_chinese.mp3">
-          <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-          下载音频
-        </a>
-        <button class="btn-reset" id="resetBtn">
-          <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
-          重新开始
-        </button>
+      <button class="auth-submit" id="authSubmit">登录</button>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-toggle">
+        <span id="authToggleText">还没有账号？</span>
+        <a id="authToggleLink">注册</a>
       </div>
     </div>
   </div>
 
-  <!-- Error -->
-  <div class="error-msg" id="errorMsg"></div>
+  <!-- Upload (shown when logged in) -->
+  <div id="uploadSection" style="display:none">
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
+      </div>
+      <p class="dropzone-text">
+        <strong>拖放音频文件</strong>至此处<br>或点击选择文件
+      </p>
+      <p class="dropzone-hint">MP3 / WAV / M4A</p>
+    </div>
+    <input type="file" id="fileInput" accept="audio/*">
+
+    <div class="file-info" id="fileInfo">
+      <div class="file-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="file-details">
+        <div class="file-name" id="fileName"></div>
+        <div class="file-size" id="fileSize"></div>
+      </div>
+      <button class="file-remove" id="fileRemove" title="移除文件">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <button class="submit-btn" id="submitBtn">开始转录</button>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-label">
+        <span class="progress-status" id="progressStatus">正在上传</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="processing-section" id="processingSection">
+      <div class="processing-wave">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <p class="processing-text" id="processingText">正在处理中，请稍候</p>
+      <div class="processing-steps">
+        <div class="step" id="step1"><span class="step-dot"></span>语音识别 ASR</div>
+        <div class="step" id="step2"><span class="step-dot"></span>翻译为中文</div>
+        <div class="step" id="step3"><span class="step-dot"></span>语音合成 TTS</div>
+      </div>
+      <div class="processing-logs" id="processingLogs"></div>
+    </div>
+
+    <div class="result-section" id="resultSection">
+      <div class="result-card">
+        <div class="result-badge">转录完成</div>
+        <p class="result-title">您的中文播客音频已准备就绪</p>
+        <div class="result-actions">
+          <a class="btn-player" id="goPlayerResultBtn" href="/player">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            前往播放
+          </a>
+          <button class="btn-reset" id="resetBtn">
+            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg>
+            继续上传
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
 </main>
 
 <footer class="footer">播刻 Podcast Transcribe</footer>
@@ -827,6 +841,131 @@ audio {
 <script>
 const $ = id => document.getElementById(id);
 
+// ── Auth state ──
+let currentUser = null;
+let isLoginMode = true;
+
+const authSection = $('authSection');
+const authTitle = $('authTitle');
+const authUsername = $('authUsername');
+const authPassword = $('authPassword');
+const authSubmit = $('authSubmit');
+const authError = $('authError');
+const authToggleText = $('authToggleText');
+const authToggleLink = $('authToggleLink');
+const userBar = $('userBar');
+const userBarName = $('userBarName');
+const goPlayerBtn = $('goPlayerBtn');
+const logoutBtn = $('logoutBtn');
+const uploadSection = $('uploadSection');
+
+function showAuthError(msg) {
+  authError.textContent = msg;
+  authError.classList.add('visible');
+}
+function hideAuthError() {
+  authError.classList.remove('visible');
+}
+
+function setAuthMode(login) {
+  isLoginMode = login;
+  authTitle.textContent = login ? '登录' : '注册';
+  authSubmit.textContent = login ? '登录' : '注册';
+  authToggleText.textContent = login ? '还没有账号？' : '已有账号？';
+  authToggleLink.textContent = login ? '注册' : '登录';
+  authPassword.autocomplete = login ? 'current-password' : 'new-password';
+  hideAuthError();
+}
+
+authToggleLink.addEventListener('click', () => setAuthMode(!isLoginMode));
+
+authSubmit.addEventListener('click', async () => {
+  const username = authUsername.value.trim();
+  const password = authPassword.value;
+  if (!username || !password) {
+    showAuthError('请填写用户名和密码');
+    return;
+  }
+  hideAuthError();
+  authSubmit.disabled = true;
+
+  try {
+    const url = isLoginMode ? '/api/login' : '/api/register';
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      showAuthError(data.error || '操作失败');
+      return;
+    }
+    currentUser = data.username;
+    enterLoggedIn(data.username);
+  } catch {
+    showAuthError('网络错误');
+  } finally {
+    authSubmit.disabled = false;
+  }
+});
+
+authPassword.addEventListener('keydown', e => {
+  if (e.key === 'Enter') authSubmit.click();
+});
+
+logoutBtn.addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  currentUser = null;
+  enterLoggedOut();
+});
+
+function enterLoggedIn(username) {
+  authSection.classList.remove('visible');
+  userBarName.textContent = username;
+  userBar.classList.add('visible');
+  uploadSection.style.display = '';
+  checkLastPlayed();
+}
+
+function enterLoggedOut() {
+  userBar.classList.remove('visible');
+  uploadSection.style.display = 'none';
+  goPlayerBtn.style.display = 'none';
+  authUsername.value = '';
+  authPassword.value = '';
+  hideAuthError();
+  setAuthMode(true);
+  authSection.classList.add('visible');
+}
+
+async function checkLastPlayed() {
+  try {
+    const resp = await fetch('/api/me');
+    const data = await resp.json();
+    if (data.last_played) {
+      goPlayerBtn.style.display = '';
+    }
+  } catch {}
+}
+
+// Check login state on load
+async function initAuth() {
+  try {
+    const resp = await fetch('/api/me');
+    if (resp.ok) {
+      const data = await resp.json();
+      currentUser = data.username;
+      enterLoggedIn(data.username);
+    } else {
+      enterLoggedOut();
+    }
+  } catch {
+    enterLoggedOut();
+  }
+}
+
+// ── Upload logic ──
 const dropzone = $('dropzone');
 const fileInput = $('fileInput');
 const fileInfo = $('fileInfo');
@@ -842,35 +981,23 @@ const processingSection = $('processingSection');
 const processingText = $('processingText');
 const processingLogs = $('processingLogs');
 const resultSection = $('resultSection');
-const audioPlayer = $('audioPlayer');
-const downloadBtn = $('downloadBtn');
 const resetBtn = $('resetBtn');
 const errorMsg = $('errorMsg');
-const subtitleHeader = $('subtitleHeader');
-const subtitleWrapper = $('subtitleWrapper');
-const subtitleContainer = $('subtitleContainer');
-const enToggleBtn = $('enToggleBtn');
 
 let selectedFile = null;
-let audioBlobUrl = null;
-let subtitleData = null;
-let currentSubIdx = -1;
-let showEnglish = true;
+let lastTaskId = null;
 
 const stepMap = { asr: 'step1', translate: 'step2', tts: 'step3' };
 
-// Format file size
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
-// Show / hide helpers
 function show(el) { el.classList.add('visible'); }
 function hide(el) { el.classList.remove('visible'); el.style.display = ''; }
 
-// File selection
 function selectFile(file) {
   if (!file) return;
   selectedFile = file;
@@ -888,7 +1015,6 @@ function clearFile() {
   hide(submitBtn);
 }
 
-// Drag & drop
 dropzone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', e => selectFile(e.target.files[0]));
 fileRemove.addEventListener('click', e => { e.stopPropagation(); clearFile(); });
@@ -909,7 +1035,6 @@ dropzone.addEventListener('drop', e => {
   if (file && file.type.startsWith('audio/')) selectFile(file);
 });
 
-// Error display
 function showError(msg) {
   errorMsg.textContent = msg;
   errorMsg.classList.add('visible');
@@ -920,7 +1045,6 @@ function hideError() {
   errorMsg.style.display = '';
 }
 
-// Step control (driven by SSE events)
 function activateStep(step) {
   const el = $(stepMap[step]);
   if (el) {
@@ -943,7 +1067,6 @@ function resetSteps() {
   });
 }
 
-// Log display
 function addLog(message) {
   const entry = document.createElement('div');
   entry.className = 'log-entry';
@@ -956,118 +1079,14 @@ function clearLogs() {
   processingLogs.innerHTML = '';
 }
 
-// --- Subtitle logic ---
-
-function renderSubtitles() {
-  subtitleContainer.innerHTML = '';
-  if (!subtitleData || !subtitleData.subtitles.length) return;
-
-  subtitleHeader.style.display = '';
-  subtitleWrapper.style.display = '';
-
-  subtitleData.subtitles.forEach((sub, i) => {
-    const el = document.createElement('div');
-    el.className = 'subtitle-entry';
-    el.dataset.index = i;
-
-    let html = '';
-    if (sub.speaker) {
-      html += `<div class="subtitle-speaker">Speaker ${sub.speaker}</div>`;
-    }
-    html += `<div class="subtitle-chinese">${escapeHtml(sub.chinese)}</div>`;
-    if (sub.english) {
-      html += `<div class="subtitle-english">${escapeHtml(sub.english)}</div>`;
-    }
-    el.innerHTML = html;
-
-    el.addEventListener('click', () => {
-      audioPlayer.currentTime = sub.start;
-      audioPlayer.play();
-    });
-
-    subtitleContainer.appendChild(el);
-  });
-
-  currentSubIdx = -1;
-}
-
-function escapeHtml(text) {
-  const d = document.createElement('div');
-  d.textContent = text;
-  return d.innerHTML;
-}
-
-function syncSubtitle() {
-  if (!subtitleData || !subtitleData.subtitles.length) return;
-
-  const t = audioPlayer.currentTime;
-  const subs = subtitleData.subtitles;
-
-  // Binary search for active subtitle
-  let lo = 0, hi = subs.length - 1, idx = -1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (t < subs[mid].start) {
-      hi = mid - 1;
-    } else if (t >= subs[mid].end) {
-      lo = mid + 1;
-    } else {
-      idx = mid;
-      break;
-    }
-  }
-
-  if (idx === currentSubIdx) return;
-  currentSubIdx = idx;
-
-  const entries = subtitleContainer.querySelectorAll('.subtitle-entry');
-  entries.forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
-    el.classList.toggle('past', idx >= 0 && i < idx);
-  });
-
-  // Scroll active entry into view
-  if (idx >= 0 && entries[idx]) {
-    const entry = entries[idx];
-    const containerRect = subtitleContainer.getBoundingClientRect();
-    const entryRect = entry.getBoundingClientRect();
-    const offset = entryRect.top - containerRect.top - containerRect.height / 2 + entryRect.height / 2;
-    subtitleContainer.scrollBy({ top: offset, behavior: 'smooth' });
-  }
-}
-
-audioPlayer.addEventListener('timeupdate', syncSubtitle);
-
-// EN toggle
-enToggleBtn.addEventListener('click', () => {
-  showEnglish = !showEnglish;
-  enToggleBtn.classList.toggle('active', showEnglish);
-  subtitleContainer.classList.toggle('hide-english', !showEnglish);
-});
-
-function resetSubtitles() {
-  subtitleData = null;
-  currentSubIdx = -1;
-  subtitleContainer.innerHTML = '';
-  subtitleContainer.classList.remove('hide-english');
-  subtitleHeader.style.display = 'none';
-  subtitleWrapper.style.display = 'none';
-  showEnglish = true;
-  enToggleBtn.classList.add('active');
-}
-
-// --- Submit ---
-
 submitBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
   hideError();
 
-  // Hide upload UI
   dropzone.style.display = 'none';
   hide(fileInfo);
   hide(submitBtn);
 
-  // Show upload progress
   show(progressSection);
   progressSection.style.display = 'block';
 
@@ -1075,7 +1094,6 @@ submitBtn.addEventListener('click', async () => {
   formData.append('file', selectedFile);
 
   try {
-    // Step 1: Upload file via XHR with progress
     const taskId = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.responseType = 'json';
@@ -1093,7 +1111,7 @@ submitBtn.addEventListener('click', async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(xhr.response.task_id);
         } else {
-          reject(new Error(`上传失败 (${xhr.status})`));
+          reject(new Error(xhr.response?.error || `上传失败 (${xhr.status})`));
         }
       });
 
@@ -1104,7 +1122,8 @@ submitBtn.addEventListener('click', async () => {
       xhr.send(formData);
     });
 
-    // Step 2: Transition to processing view
+    lastTaskId = taskId;
+
     await new Promise(r => setTimeout(r, 400));
     hide(progressSection);
     progressSection.style.display = '';
@@ -1113,7 +1132,6 @@ submitBtn.addEventListener('click', async () => {
     processingText.textContent = '正在处理中，请稍候';
     clearLogs();
 
-    // Step 3: Connect SSE for real-time progress
     await new Promise((resolve, reject) => {
       const evtSource = new EventSource('/progress/' + taskId);
       let settled = false;
@@ -1157,29 +1175,11 @@ submitBtn.addEventListener('click', async () => {
       };
     });
 
-    // Step 4: Download result audio and subtitles in parallel
-    const [audioResp, subResp] = await Promise.all([
-      fetch('/download/' + taskId),
-      fetch('/subtitles/' + taskId),
-    ]);
-
-    if (!audioResp.ok) throw new Error('下载失败');
-    const audioBlob = await audioResp.blob();
-
-    if (subResp.ok) {
-      subtitleData = await subResp.json();
-    }
-
-    // Show result
+    // Show result with link to player
     hide(processingSection);
     processingSection.style.display = '';
 
-    if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
-    audioBlobUrl = URL.createObjectURL(audioBlob);
-    audioPlayer.src = audioBlobUrl;
-    downloadBtn.href = audioBlobUrl;
-
-    renderSubtitles();
+    $('goPlayerResultBtn').href = '/player?id=' + lastTaskId;
 
     show(resultSection);
     resultSection.style.display = 'block';
@@ -1205,18 +1205,14 @@ function resetUI() {
   clearLogs();
 }
 
-// Reset button
 resetBtn.addEventListener('click', () => {
   hide(resultSection);
   resultSection.style.display = '';
-  if (audioBlobUrl) {
-    URL.revokeObjectURL(audioBlobUrl);
-    audioBlobUrl = null;
-  }
-  audioPlayer.src = '';
-  resetSubtitles();
   resetUI();
 });
+
+// Init
+initAuth();
 </script>
 
 </body>
