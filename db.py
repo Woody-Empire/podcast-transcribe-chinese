@@ -181,4 +181,4 @@ def get_progress(user_id: int, podcast_id: str) -> float:
         (user_id, podcast_id),
     ).fetchone()
     conn.close()
-    return max(0.0, row["position"] - 5) if row else 0.0
+    return row["position"] if row else 0.0

@@ -574,17 +574,23 @@ enToggleBtn.addEventListener('click', () => {
 });
 
 // ── Progress saving ──
+let hasPlayedSinceResume = true;
+
+function saveProgress() {
+  if (!hasPlayedSinceResume) return;
+  if (currentPodcastId && audioPlayer.currentTime > 0) {
+    fetch(`/api/progress/${currentPodcastId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ position: audioPlayer.currentTime }),
+    }).catch(() => {});
+  }
+}
+
 function startSavingProgress() {
   stopSavingProgress();
-  saveTimer = setInterval(() => {
-    if (currentPodcastId && audioPlayer.currentTime > 0) {
-      fetch(`/api/progress/${currentPodcastId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ position: audioPlayer.currentTime }),
-      }).catch(() => {});
-    }
-  }, 5000);
+  hasPlayedSinceResume = true;
+  saveTimer = setInterval(saveProgress, 5000);
 }
 
 function stopSavingProgress() {
@@ -595,17 +601,10 @@ function stopSavingProgress() {
 }
 
 // Save progress on pause and before leaving
-audioPlayer.addEventListener('pause', () => {
-  if (currentPodcastId && audioPlayer.currentTime > 0) {
-    fetch(`/api/progress/${currentPodcastId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ position: audioPlayer.currentTime }),
-    }).catch(() => {});
-  }
-});
+audioPlayer.addEventListener('pause', saveProgress);
 
 window.addEventListener('beforeunload', () => {
+  if (!hasPlayedSinceResume) return;
   if (currentPodcastId && audioPlayer.currentTime > 0) {
     navigator.sendBeacon(
       `/api/progress/${currentPodcastId}`,
@@ -651,9 +650,10 @@ async function loadPodcast(podcastId, resumePosition) {
 
   // Resume position when audio is ready
   if (resumePosition > 0) {
+    hasPlayedSinceResume = false;
     audioPlayer.addEventListener('loadedmetadata', function onMeta() {
       audioPlayer.removeEventListener('loadedmetadata', onMeta);
-      audioPlayer.currentTime = resumePosition;
+      audioPlayer.currentTime = Math.max(0, resumePosition - 5);
     });
   }
 
