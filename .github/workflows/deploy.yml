@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            if [ -d ~/podcast-transcribe-chinese/.git ]; then
+              cd ~/podcast-transcribe-chinese
+              git remote set-url origin https://github.com/${{ github.repository }}.git
+              git pull origin main
+            else
+              rm -rf ~/podcast-transcribe-chinese
+              git clone https://github.com/${{ github.repository }}.git ~/podcast-transcribe-chinese
+              cd ~/podcast-transcribe-chinese
+            fi
+
+            docker compose up -d --build --force-recreate
+            docker image prune -f
