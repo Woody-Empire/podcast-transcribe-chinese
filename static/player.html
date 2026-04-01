@@ -267,11 +267,138 @@ body {
   margin-bottom: 0.8rem;
 }
 
-audio {
-  width: 100%;
+audio { display: none; }
+
+/* Custom player */
+.custom-player {
+  margin-top: 0.5rem;
+}
+
+.player-progress-wrap {
+  position: relative;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: height 0.1s;
+}
+
+.player-progress-wrap:hover {
+  height: 6px;
+}
+
+.player-progress-buffered {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+}
+
+.player-progress-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+}
+
+.player-progress-handle {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.player-progress-wrap:hover .player-progress-handle,
+.player-progress-wrap.dragging .player-progress-handle {
+  opacity: 1;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.player-time {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--stone);
+  min-width: 36px;
+  user-select: none;
+}
+
+.player-time:last-child {
+  text-align: right;
+}
+
+.player-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.btn-play {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--paper);
+  transition: all 0.15s;
+}
+
+.btn-play:hover {
+  background: var(--accent);
+}
+
+.btn-play svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.btn-skip {
+  width: 36px;
   height: 36px;
-  border-radius: 4px;
-  outline: none;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stone);
+  transition: all 0.15s;
+}
+
+.btn-skip:hover {
+  color: var(--ink);
+  background: var(--paper-deep);
+}
+
+.btn-skip svg {
+  width: 28px;
+  height: 28px;
 }
 
 .player-controls {
@@ -446,6 +573,11 @@ audio {
   .player-main { height: 0; flex: 1; }
   .subtitle-container { padding: 0.8rem 1rem; }
   .player-header { padding: 0.8rem 1rem; }
+  .player-progress-handle { opacity: 1; }
+  .btn-play { width: 44px; height: 44px; }
+  .btn-play svg { width: 20px; height: 20px; }
+  .btn-skip { width: 40px; height: 40px; }
+  .btn-skip svg { width: 32px; height: 32px; }
 }
 </style>
 </head>
@@ -480,7 +612,36 @@ audio {
     <div class="now-playing" id="nowPlaying">
       <div class="player-header">
         <h2 class="podcast-title" id="podcastTitle"></h2>
-        <audio controls id="audioPlayer"></audio>
+        <audio id="audioPlayer"></audio>
+        <div class="custom-player">
+          <div class="player-progress-wrap" id="playerProgressWrap">
+            <div class="player-progress-buffered" id="progressBuffered"></div>
+            <div class="player-progress-filled" id="progressFilled"></div>
+            <div class="player-progress-handle" id="progressHandle"></div>
+          </div>
+          <div class="player-row">
+            <span class="player-time" id="playerCurrentTime">0:00</span>
+            <div class="player-btns">
+              <button class="btn-skip" id="btnRewind" title="后退15秒">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+                  <text x="12" y="15.5" text-anchor="middle" font-size="7.5" fill="currentColor" stroke="none" font-weight="700" font-family="sans-serif">15</text>
+                </svg>
+              </button>
+              <button class="btn-play" id="btnPlay" title="播放">
+                <svg class="icon-play" viewBox="0 0 24 24"><polygon points="7,4 20,12 7,20"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+              </button>
+              <button class="btn-skip" id="btnForward" title="前进15秒">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+                  <text x="12" y="15.5" text-anchor="middle" font-size="7.5" fill="currentColor" stroke="none" font-weight="700" font-family="sans-serif">15</text>
+                </svg>
+              </button>
+            </div>
+            <span class="player-time" id="playerDuration">0:00</span>
+          </div>
+        </div>
         <div class="player-controls">
           <a class="btn-action" id="downloadBtn" download="podcast_chinese.mp3">
             <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
@@ -606,6 +767,93 @@ enToggleBtn.addEventListener('click', () => {
   showEnglish = !showEnglish;
   enToggleBtn.classList.toggle('active', showEnglish);
   subtitleContainer.classList.toggle('hide-english', !showEnglish);
+});
+
+// Custom player controls
+const btnPlay = $('btnPlay');
+const btnRewind = $('btnRewind');
+const btnForward = $('btnForward');
+const progressWrap = $('playerProgressWrap');
+const progressFilled = $('progressFilled');
+const progressBuffered = $('progressBuffered');
+const progressHandle = $('progressHandle');
+const playerCurrentTime = $('playerCurrentTime');
+const playerDuration = $('playerDuration');
+
+function formatTime(s) {
+  if (isNaN(s) || s < 0) return '0:00';
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = Math.floor(s % 60);
+  if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+btnPlay.addEventListener('click', () => {
+  if (audioPlayer.paused) audioPlayer.play();
+  else audioPlayer.pause();
+});
+
+function updatePlayIcon() {
+  btnPlay.querySelector('.icon-play').style.display = audioPlayer.paused ? '' : 'none';
+  btnPlay.querySelector('.icon-pause').style.display = audioPlayer.paused ? 'none' : '';
+}
+audioPlayer.addEventListener('play', updatePlayIcon);
+audioPlayer.addEventListener('pause', updatePlayIcon);
+
+btnRewind.addEventListener('click', () => {
+  audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 15);
+});
+btnForward.addEventListener('click', () => {
+  audioPlayer.currentTime = Math.min(audioPlayer.duration || 0, audioPlayer.currentTime + 15);
+});
+
+function updateProgress() {
+  if (!audioPlayer.duration) return;
+  const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+  progressFilled.style.width = pct + '%';
+  progressHandle.style.left = pct + '%';
+  playerCurrentTime.textContent = formatTime(audioPlayer.currentTime);
+  playerDuration.textContent = formatTime(audioPlayer.duration);
+}
+audioPlayer.addEventListener('timeupdate', updateProgress);
+audioPlayer.addEventListener('loadedmetadata', updateProgress);
+audioPlayer.addEventListener('durationchange', () => {
+  playerDuration.textContent = formatTime(audioPlayer.duration);
+});
+
+audioPlayer.addEventListener('progress', () => {
+  if (audioPlayer.buffered.length > 0 && audioPlayer.duration) {
+    const end = audioPlayer.buffered.end(audioPlayer.buffered.length - 1);
+    progressBuffered.style.width = (end / audioPlayer.duration) * 100 + '%';
+  }
+});
+
+function seekFromEvent(e) {
+  const rect = progressWrap.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  audioPlayer.currentTime = pct * (audioPlayer.duration || 0);
+  updateProgress();
+}
+
+let progressDragging = false;
+progressWrap.addEventListener('mousedown', (e) => {
+  progressDragging = true;
+  progressWrap.classList.add('dragging');
+  seekFromEvent(e);
+});
+document.addEventListener('mousemove', (e) => { if (progressDragging) seekFromEvent(e); });
+document.addEventListener('mouseup', () => {
+  if (progressDragging) { progressDragging = false; progressWrap.classList.remove('dragging'); }
+});
+progressWrap.addEventListener('touchstart', (e) => {
+  progressDragging = true;
+  progressWrap.classList.add('dragging');
+  seekFromEvent(e.touches[0]);
+}, { passive: true });
+document.addEventListener('touchmove', (e) => { if (progressDragging) seekFromEvent(e.touches[0]); }, { passive: true });
+document.addEventListener('touchend', () => {
+  if (progressDragging) { progressDragging = false; progressWrap.classList.remove('dragging'); }
 });
 
 // Progress saving
